@@ -95,3 +95,4 @@ Phần kỹ thuật (cấu trúc mã, API, chạy local, deploy) nằm ở [docs
 - [ ] Làm mới giao diện trang web cho đẹp và bắt mắt hơn
 - [ ] Chỗ đặt quảng cáo cho nhà sách, nhà xuất bản và nhãn hàng trên trang Dual Page
 - [ ] Nút "Đọc cuốn tiếp theo" sau khi hết sprint, giữ nguyên phòng
+- [ ] Bản tiếng Anh (sau khi test xong ở Việt Nam)
