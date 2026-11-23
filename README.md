@@ -4,7 +4,8 @@
 
 - Trang web: **https://dualpage.online**
 - Thiết bị: XTeink X4 / X4 Pro chạy firmware **CrossPoint 2.0.0** trở lên, cài plugin qua thẻ SD, không cần flash firmware.
-- Đang làm: plugin cho **KOReader** (Kindle, Kobo…), để hai người dùng hai loại máy khác nhau vẫn vào chung một phòng.
+- Thiết bị khác: Kindle, Kobo, PocketBook, Android có **KOReader**. Hai người dùng hai loại máy khác nhau vẫn vào chung một phòng.
+- **[Hướng dẫn sử dụng chi tiết](docs/HUONG-DAN-SU-DUNG.md)**
 
 ---
 
@@ -62,7 +63,9 @@ Chia sẻ: “Chúng ta không thuần hoá lúa mì. …”   Chương 5
 
 ---
 
-## Hướng dẫn dùng (XTeink + CrossPoint)
+## Bắt đầu nhanh (XTeink + CrossPoint)
+
+Hướng dẫn đầy đủ cho cả XTeink và KOReader: [docs/HUONG-DAN-SU-DUNG.md](docs/HUONG-DAN-SU-DUNG.md).
 
 1. Cập nhật máy lên **CrossPoint 2.0.0** trở lên.
 2. Vào **dualpage.online**, tạo phòng (nhập tên sách, có thể tải epub lên) hoặc nhập mã mời để vào phòng.
@@ -88,6 +91,6 @@ Phần kỹ thuật (cấu trúc mã, API, chạy local, deploy) nằm ở [docs
 - [x] Chia sẻ highlight lên màn hình chờ của bạn kia (tự động và chọn tay)
 - [x] Nhắc đọc từ máy và từ web
 - [x] Tên miền dualpage.online
-- [ ] Plugin KOReader (Kindle, Kobo), dùng chung phòng với XTeink
+- [x] Plugin KOReader (Kindle, Kobo), dùng chung phòng với XTeink (chờ test trên máy thật)
 - [ ] Làm mới giao diện trang web cho đẹp và bắt mắt hơn
 - [ ] Chỗ đặt quảng cáo cho nhà sách, nhà xuất bản và nhãn hàng trên trang Dual Page
