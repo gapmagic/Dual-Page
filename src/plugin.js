@@ -7,10 +7,15 @@ export function pluginFiles(origin, token) {
     config: { file: "config.json" },
     browse: {
       format: "json",
-      url: `${D}/home`,
+      url: `${D}/home?list={list_id_enc}`,
       items: "items",
       fields: { title: "title", author: "author", id: "id" },
       page_size: 12,
+      // Sections (Hôm nay, Câu hay, Sách chung, Sprint) come from the server so
+      // their titles can carry live status, e.g. "Hôm nay · Minh nhắc bạn đọc!".
+      lists_url: `${D}/lists`,
+      lists_items: "lists",
+      lists_fields: { title: "title", id: "id" },
     },
     download: {
       url: `${D}/act/{id_enc}`,
@@ -47,7 +52,7 @@ export function pluginFiles(origin, token) {
   const manifest = {
     title: "Dual Page",
     description: "Giữ chuỗi đọc chung với bạn đọc",
-    version: "0.2.0",
+    version: "0.3.0",
     mount: "settings",
   };
   const config = { server: origin, token };

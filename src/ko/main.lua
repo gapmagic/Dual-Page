@@ -354,10 +354,10 @@ function DualPage:addToMainMenu(menu_items)
     }
 end
 
-function DualPage:openMenu(items)
+function DualPage:openMenu(title, items)
     local menu
     menu = Menu:new{
-        title = "Dual Page",
+        title = title,
         item_table = items,
         covers_fullscreen = true,
         is_borderless = true,
@@ -367,7 +367,24 @@ function DualPage:openMenu(items)
     UIManager:show(menu)
 end
 
-function DualPage:showHome()
+-- Builds the menu rows of one section.
+function DualPage:sectionItems(sec)
+    local items = {}
+    for _, it in ipairs(sec.items or {}) do
+        local id, title, sub = tostring(it.id or "info"), tostring(it.title or ""), tostring(it.author or "")
+        local row = {
+            text = title,
+            callback = function() self:onItem(sec, id, title, sub) end,
+        }
+        if id:match("%.dp$") then row.bold = true end
+        table.insert(items, row)
+    end
+    return items
+end
+
+-- Main screen: one row per section ("Hôm nay · Minh nhắc bạn đọc!", "Câu hay"...).
+-- open_id opens that section directly (after an action).
+function DualPage:showHome(open_id)
     NetworkMgr:runWhenOnline(function()
         -- Send what was just read first, so the status is current.
         if self.ui.document and self.start_pct then
@@ -375,38 +392,51 @@ function DualPage:showHome()
             if body then self:queue("sessions", body) end
         end
         self:flushQueues()
-        local res = request("GET", "home")
+        local res = request("GET", "home?grouped=1")
         local ok, data = pcall(json.decode, res or "")
-        if not (ok and type(data) == "table" and type(data.items) == "table") then
+        if not (ok and type(data) == "table" and type(data.sections) == "table") then
             UIManager:show(InfoMessage:new{ text = "Không kết nối được Dual Page. Kiểm tra Wi-Fi rồi thử lại." })
             return
         end
-        local items = {}
-        for _, it in ipairs(data.items) do
-            local id, title, sub = tostring(it.id or "info"), tostring(it.title or ""), tostring(it.author or "")
-            table.insert(items, {
-                text = title,
-                callback = function() self:onItem(id, title, sub) end,
+        self.sections = data.sections
+        local rows = {}
+        for _, sec in ipairs(data.sections) do
+            local label = tostring(sec.title or "")
+            if sec.note and sec.note ~= "" then label = label .. " · " .. tostring(sec.note) end
+            table.insert(rows, {
+                text = label,
+                bold = true,
+                callback = function() self:openMenu("Dual Page · " .. tostring(sec.title or ""), self:sectionItems(sec)) end,
             })
+            if open_id and sec.id == open_id then open_id = sec end
         end
-        self.items = items
-        self:openMenu(items)
+        table.insert(rows, {
+            text = "Cập nhật lúc " .. tostring(data.updated or ""),
+            callback = function() self:showHome() end,
+        })
+        self.home_rows = rows
+        if type(open_id) == "table" then
+            self:openMenu("Dual Page · " .. tostring(open_id.title or ""), self:sectionItems(open_id))
+        else
+            self:openMenu("Dual Page", rows)
+        end
         self:refreshScreen()
     end)
 end
 
-function DualPage:onItem(id, title, sub)
+function DualPage:onItem(sec, id, title, sub)
+    local back = function() self:openMenu("Dual Page · " .. tostring(sec.title or ""), self:sectionItems(sec)) end
     if id == "info" then
         UIManager:show(InfoMessage:new{
             text = sub ~= "" and (title .. "\n\n" .. sub) or title,
-            dismiss_callback = function() self:openMenu(self.items) end,
+            dismiss_callback = back,
         })
     elseif id:match("%.dp$") then
         local res = request("GET", "act/" .. util.urlEncode(id))
         UIManager:show(InfoMessage:new{
             text = res and util.trim(res) or "Không gửi được, thử lại sau.",
             timeout = 3,
-            dismiss_callback = function() self:showHome() end,
+            dismiss_callback = function() self:showHome(sec.id) end,
         })
     else
         self:downloadBook(id)

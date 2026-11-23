@@ -293,8 +293,12 @@ async function device(req, env, url, rest) {
     // Installed reader that is not in a room right now.
     if (action === "sleep.bmp") return new Response(renderNoRoom(url.origin).toBMP(), { headers: { "content-type": "image/bmp", "cache-control": "no-store" } });
     if (action === "sleep.png") return png(renderNoRoom(url.origin), url);
-    if (action === "home" || action === "search")
-      return json({ items: [{ id: "info", title: "Máy chưa vào phòng nào", author: `Mở ${url.host} để tạo hoặc tham gia phòng` }] });
+    if (action === "lists") return json({ lists: [{ id: "today", title: "Dual Page · chưa vào phòng" }] });
+    if (action === "home" || action === "search") {
+      const items = [{ id: "info", title: "Máy chưa vào phòng nào", author: `Mở ${url.host} để tạo hoặc tham gia phòng` }];
+      if (url.searchParams.get("grouped")) return json({ sections: [{ id: "today", title: "Dual Page", note: "chưa vào phòng", items }] });
+      return json({ items });
+    }
     return text("ok");
   }
 
@@ -342,7 +346,23 @@ async function device(req, env, url, rest) {
     return text(items.some((i) => i.share) ? "Đã chia sẻ câu này." : "ok");
   }
 
-  if (action === "home") return json({ items: await homeItems(db, me) });
+  if (action === "home") {
+    const list = url.searchParams.get("list");
+    if (url.searchParams.get("grouped")) {
+      const { s, sections } = await homeSections(db, me);
+      return json({ sections, updated: s.updated_label });
+    }
+    if (list) {
+      const { s, sections } = await homeSections(db, me);
+      const sec = sections.find((x) => x.id === list) || sections[0];
+      return json({ items: [...sec.items, { id: "info", title: `Cập nhật lúc ${s.updated_label}`, author: "Thoát ra rồi mở lại để làm mới" }] });
+    }
+    return json({ items: await homeItems(db, me) });
+  }
+  if (action === "lists") {
+    const { sections } = await homeSections(db, me);
+    return json({ lists: sections.map((x) => ({ id: x.id, title: x.note ? `${x.title} · ${x.note}` : x.title })) });
+  }
 
   if (action.startsWith("act/")) {
     const id = decodeURIComponent(action.slice(4)).replace(/\.txt$/, "").replace(/\.dp$/, "");
@@ -391,60 +411,93 @@ async function png(canvas, url) {
   return new Response(await canvas.toPNG(scale), { headers: { "content-type": "image/png", "cache-control": "no-store" } });
 }
 
-async function homeItems(db, me) {
+// On-device menu, grouped into sections. CrossPoint shows each section as a list
+// (browse.lists_url + ?list=<id>); KOReader shows them as sub-menus (?grouped=1);
+// plain /home (older plugin installs) gets one list with section header rows.
+async function homeSections(db, me) {
   const s = await computeState(db, me);
-  const items = [];
-  const info = (title, author = "") => items.push({ id: "info", title, author });
-  const act = (id, title, author = "") => items.push({ id: id + ".dp", title, author });
-  const bookRows = () => {
+  const P = s.partner && s.partner.name;
+  const sections = [];
+  let cur;
+  const section = (id, title, note = "") => sections.push((cur = { id, title, note, items: [] }));
+  const info = (title, author = "") => cur.items.push({ id: "info", title, author });
+  const act = (id, title, author = "") => cur.items.push({ id: id + ".dp", title, author });
+  const st = (p) =>
+    !p.bound ? "chưa mở sách chung" : p.finished ? "đã đọc xong" : p.done_today ? `đã đạt mục tiêu hôm nay (+${p.today_pct}%)` : p.read_today ? `đã đọc ${Math.round(p.today_pct)}% / ${Math.round(p.target_pct)}%` : "chưa đọc hôm nay";
+  const bookSection = () => {
     if (!s.book) return;
-    info(`Sách chung: ${s.book.title}`, s.me.bound ? `Bạn đang đọc: ${s.me.book}` : "Mở cuốn này trên máy để bắt đầu tính tiến độ");
+    section("book", "Sách chung", s.book.title);
+    info(s.book.title, s.me.bound ? `Bạn đang đọc file: ${s.me.book}` : "Mở cuốn này trên máy để bắt đầu tính tiến độ");
     if (s.book.file) {
       const ext = s.book.file.match(/\.[^.]+$/)?.[0] || ".epub";
-      items.push({ id: fileSafe(s.book.title) + ext, title: "Tải sách chung về máy", author: "Lưu vào thư mục DualPage" });
+      cur.items.push({ id: fileSafe(s.book.title) + ext, title: "Tải sách chung về máy", author: "Lưu vào thư mục DualPage" });
     }
+    info("Chỉ sách chung được tính tiến độ", "Đọc sách khác vẫn được, chỉ không cộng vào chuỗi");
   };
-  const st = (p) =>
-    !p.bound ? "chưa mở sách chung" : p.finished ? "đã đọc xong ✓" : p.done_today ? `xong hôm nay ✓ +${p.today_pct}%` : p.read_today ? `đã đọc ${Math.round(p.today_pct)}% / mục tiêu ${Math.round(p.target_pct)}%` : "chưa đọc hôm nay";
 
   if (s.phase === "waiting") {
+    section("today", "Chờ bạn đọc vào phòng", `Mã mời ${s.code}`);
     info(`Mã mời: ${s.code}`, "Gửi mã này cho bạn đọc để ghép đôi");
-    bookRows();
-    return items;
+    info(`Sprint ${s.sprint_days} ngày`, "Bắt đầu khi bạn đọc vào phòng và đồng ý");
+    bookSection();
+    return { s, sections };
   }
   if (s.phase === "pending") {
-    bookRows();
-    if (me.role === "guest") act("accept", `Nhận sprint ${s.sprint_days} ngày`, "Bấm để bắt đầu cùng nhau");
-    else info(`Chờ ${s.partner.name} nhận sprint ${s.sprint_days} ngày`);
-    return items;
+    section("today", "Bắt đầu sprint", me.role === "guest" ? "Chờ bạn đồng ý" : `Chờ ${P} đồng ý`);
+    if (me.role === "guest") act("accept", `Đồng ý sprint ${s.sprint_days} ngày`, "Bấm để bắt đầu cùng nhau");
+    else info(`Chờ ${P} đồng ý sprint ${s.sprint_days} ngày`, "Mở lại mục này để làm mới");
+    bookSection();
+    return { s, sections };
   }
-  if (s.me.nudged) act("seen", `${s.partner.name} nhắc: Đọc thôi nào!`, "Bấm để đánh dấu đã xem");
   if (s.phase === "recap") {
     const r = s.sprint.recap;
-    info(`Tổng kết: ${r.shared_days} ngày cùng đạt mục tiêu`, r.early_days ? `Xong sớm ${r.early_days} ngày!` : "");
+    section("today", "Tổng kết sprint", `${r.shared_days} ngày cùng đạt mục tiêu`);
+    info(`${r.shared_days} ngày cùng đạt mục tiêu`, r.early_days ? `Xong sớm ${r.early_days} ngày!` : `Sprint ${s.sprint.total_days} ngày`);
     for (const x of [r.me, r.partner]) info(`${x.name}: +${x.pages_pct}% sách, ${x.minutes} phút`, x.quote ? `“${x.quote.text.slice(0, 120)}”` : "");
-    return items;
+    bookSection();
+    return { s, sections };
   }
-  info(`Chuỗi đọc chung: ${s.streak} ngày`, `Sprint ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`);
-  bookRows();
-  info(`Bạn: ${st(s.me)}`, `Tiến độ ${s.me.progress}% · mục tiêu ${s.me.target_pct ? Math.round(s.me.target_pct) : "?"}%/ngày`);
-  info(`${s.partner.name}: ${st(s.partner)}`, `Tiến độ ${s.partner.progress}%`);
-  if (!s.partner.done_today) act("nudge", `Nhắc ${s.partner.name} đọc`, "Lời nhắc hiện khi bạn ấy mở máy");
-  if (s.partner.shared) info(`${s.partner.name} chia sẻ:`, `“${s.partner.shared.text}”`);
-  if (s.me.shared) info(`Câu bạn đang chia sẻ:`, `“${s.me.shared.text}”`);
-  const others = s.me.highlights.filter((h) => !s.me.shared || h.id !== s.me.shared.id).slice(0, 5);
+
+  // Active sprint
+  const nudged = s.me.nudged;
+  section("today", "Hôm nay", nudged ? `${P} nhắc bạn đọc!` : `Chuỗi đọc chung ${s.streak} ngày`);
+  if (nudged) act("seen", `${P} nhắc bạn: Đọc thôi nào!`, "Bấm để đánh dấu đã xem");
+  info(`Chuỗi đọc chung: ${s.streak} ngày`, "Tăng 1 vào ngày cả hai cùng đạt mục tiêu");
+  info(`Bạn: ${st(s.me)}`, `Đã đọc ${s.me.progress}% sách`);
+  info(`${P}: ${st(s.partner)}`, `Đã đọc ${s.partner.progress}% sách`);
+  if (!s.partner.done_today) act("nudge", `Nhắc ${P} đọc`, "Lời nhắc hiện trên màn hình chờ của bạn ấy");
+
+  const others = s.me.highlights.filter((h) => !s.me.shared || h.id !== s.me.shared.id).slice(0, 6);
+  section("quotes", "Câu hay", s.partner.shared ? `${P} đang chia sẻ một câu` : `${s.me.highlights.length} câu bạn đã highlight`);
+  if (s.partner.shared) info(`${P} chia sẻ với bạn`, `“${s.partner.shared.text}”`);
+  if (s.me.shared) info("Câu bạn đang chia sẻ", `“${s.me.shared.text}”`);
   for (const h of others) act("share-" + h.id, `Chia sẻ: “${h.text.slice(0, 70)}${h.text.length > 70 ? "…" : ""}”`, h.chapter || "Bấm để hiện câu này bên bạn đọc");
-  if (!s.me.highlights.length) info("Chưa có câu highlight nào", "Highlight trong sách chung, cho máy ngủ là câu tự chia sẻ");
+  if (!s.me.highlights.length) info("Chưa có câu highlight nào", "Highlight trong sách chung, câu mới nhất tự hiện bên bạn đọc");
+
+  bookSection();
+
   const ext = s.sprint.extension;
+  section("sprint", "Sprint và gia hạn", ext && !ext.by_me ? `${P} đề nghị +${ext.days} ngày` : `Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`);
+  info(`Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`, `Mục tiêu của bạn: ${s.me.target_pct ? Math.round(s.me.target_pct) : "?"}% sách mỗi ngày`);
   if (ext && !ext.by_me) {
-    act("ext_yes", `Đồng ý gia hạn +${ext.days} ngày`, `${s.partner.name} đề nghị`);
+    act("ext_yes", `Đồng ý gia hạn +${ext.days} ngày`, `${P} đề nghị`);
     act("ext_no", "Từ chối gia hạn");
-  } else if (ext) info(`Đã đề nghị gia hạn +${ext.days} ngày`, `Chờ ${s.partner.name} đồng ý`);
+  } else if (ext) info(`Đã đề nghị gia hạn +${ext.days} ngày`, `Chờ ${P} đồng ý`);
   else {
-    act("ext3", "Đề nghị gia hạn +3 ngày");
-    act("ext7", "Đề nghị gia hạn +7 ngày");
+    act("ext3", "Đề nghị gia hạn +3 ngày", "Cả hai phải đồng ý");
+    act("ext7", "Đề nghị gia hạn +7 ngày", "Cả hai phải đồng ý");
   }
-  info(`Cập nhật lúc ${s.updated_label}`, "Mở lại mục này để làm mới");
+  return { s, sections };
+}
+
+async function homeItems(db, me) {
+  const { s, sections } = await homeSections(db, me);
+  const items = [];
+  for (const sec of sections) {
+    items.push({ id: "info", title: `—— ${sec.title.toUpperCase()} ——`, author: sec.note });
+    items.push(...sec.items);
+  }
+  items.push({ id: "info", title: `Cập nhật lúc ${s.updated_label}`, author: "Mở lại mục này để làm mới" });
   return items;
 }
 

@@ -55,7 +55,16 @@ Phòng chỉ có 2 người. Trang web nhớ phòng của bạn trên trình duy
 
 **Mở Dual Page trên máy:** Home → Plugins → **Dual Page**.
 
-<img src="guide/10-menu-tren-may.png" width="360" alt="Menu Dual Page trên máy">
+Menu chia thành 4 mục. Tên mục cho biết ngay có gì mới, ví dụ **Hôm nay · Minh nhắc bạn đọc!**
+
+| Mục | Có gì |
+|---|---|
+| **Hôm nay** | Chuỗi đọc chung, bạn và bạn đọc đã đọc bao nhiêu hôm nay, nút nhắc đọc, lời nhắc nhận được |
+| **Câu hay** | Câu bạn đọc chia sẻ, câu bạn đang chia sẻ, chọn câu khác để chia sẻ |
+| **Sách chung** | Tên sách, file bạn đang đọc, tải sách chung về máy |
+| **Sprint và gia hạn** | Ngày thứ mấy, còn bao nhiêu ngày, mục tiêu mỗi ngày, đề nghị hoặc đồng ý gia hạn |
+
+<img src="guide/10-menu-tren-may.png" alt="Menu Dual Page trên máy">
 
 *Menu Dual Page trên máy (minh họa). Dòng chữ đậm có dấu › là nút bấm được.*
 
