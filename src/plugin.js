@@ -1,9 +1,10 @@
 // Builds the per-person SD-card plugin folder (zipped by the API).
-export function pluginFiles(origin, token) {
+export function pluginFiles(origin, token, lang = "vi") {
+  const en = lang === "en";
   const D = "{cfg.server}/d/{cfg.token}";
   const device = {
     title: "Dual Page",
-    description: "Chuỗi đọc chung với bạn đọc",
+    description: en ? "Shared reading streak with your partner" : "Chuỗi đọc chung với bạn đọc",
     config: { file: "config.json" },
     browse: {
       format: "json",
@@ -51,7 +52,7 @@ export function pluginFiles(origin, token) {
   };
   const manifest = {
     title: "Dual Page",
-    description: "Giữ chuỗi đọc chung với bạn đọc",
+    description: en ? "Keep a shared reading streak with your partner" : "Giữ chuỗi đọc chung với bạn đọc",
     version: "0.3.0",
     mount: "settings",
   };
@@ -77,24 +78,47 @@ Cách dùng:
 - Highlight câu hay trong sách chung (giữ Confirm → Clip). Khi máy ngủ, câu mới nhất tự hiện trên màn hình chờ của bạn đọc (tối đa 140 ký tự). Muốn chia sẻ câu khác: Plugins → Dual Page → chọn "Chia sẻ: …".
 - Home → Plugins → Dual Page: xem trạng thái (mở lại để làm mới), nhắc bạn đọc, gia hạn sprint.
 `;
+  const readmeEn = `Dual Page
+
+Install once on this reader (switching rooms or partners later is done on the website):
+1. Copy the whole "dualpage" folder into the "plugins" folder at the root of the SD card (create "plugins" if needed), so you have /plugins/dualpage/device.json.
+2. Settings → Connectivity → Plugins: Enabled.
+3. Settings → Sleep Screen: Custom, so the sleep screen shows your streak.
+4. Connect to Wi-Fi once so the reader remembers the network.
+5. Restart the reader.
+
+Turn on highlight sharing (once):
+1. On the reader: Settings → File Transfer, on the same Wi-Fi as your phone.
+2. On your phone, open the address shown on the reader (e.g. http://crosspoint.local) and go to Plugins.
+3. On the "Dual Page: share highlights" card, tap "Turn on highlight sharing".
+
+How to use:
+- Just read. When you leave a book or the reader sleeps, progress is sent and the sleep screen updates your streak and your partner's status.
+- Only the room's shared book counts. Other books are fine, they just don't count.
+- If the room has a book file: Home → Plugins → Dual Page → Shared book → "Download the shared book" (saved to the DualPage folder).
+- Highlight great lines in the shared book (hold Confirm → Clip). Your newest highlight shows on your partner's sleep screen (up to 140 characters). To share another: Dual Page → Highlights → "Share: …".
+- Home → Plugins → Dual Page: Today, Highlights, Shared book, Sprint & extension. Nudge your partner or extend the sprint from there.
+`;
   // Browser-side card on the reader's web page: turns on highlight sync to Dual Page.
+  const TX = en
+    ? { h: "Dual Page: share highlights", p: "Tap below so the reader sends your highlights to Dual Page each time it sleeps. Your newest highlight in the shared book shows on your partner\\'s sleep screen.", n: "Note: this replaces the reader\\'s current KOReader Sync settings.", b: "Turn on highlight sharing", w: "Setting up…", ok: "On ✓", err: "Error: " }
+    : { h: "Dual Page: chia sẻ câu highlight", p: "Bấm nút dưới để máy tự gửi các câu bạn highlight lên Dual Page mỗi lần máy ngủ. Câu highlight mới nhất trong sách chung sẽ hiện trên màn hình chờ của bạn đọc.", n: "Lưu ý: thao tác này thay cài đặt KOReader Sync hiện có trên máy.", b: "Bật chia sẻ highlight", w: "Đang cài…", ok: "Đã bật ✓", err: "Lỗi: " };
   const pluginJs = `CrossPoint.registerPlugin(function (el) {
   var SERVER = ${JSON.stringify(origin + "/kosync")}, USER = ${JSON.stringify(token)};
-  el.innerHTML = '<h3>Dual Page: chia sẻ câu highlight</h3>' +
-    '<p>Bấm nút dưới để máy tự gửi các câu bạn highlight lên Dual Page mỗi lần máy ngủ. ' +
-    'Câu highlight mới nhất trong sách chung sẽ hiện trên màn hình chờ của bạn đọc.</p>' +
-    '<p><small>Lưu ý: thao tác này thay cài đặt KOReader Sync hiện có trên máy.</small></p>' +
-    '<button type="button">Bật chia sẻ highlight</button> <span class="dp-msg"></span>';
+  el.innerHTML = '<h3>${TX.h}</h3>' +
+    '<p>${TX.p}</p>' +
+    '<p><small>${TX.n}</small></p>' +
+    '<button type="button">${TX.b}</button> <span class="dp-msg"></span>';
   var msg = el.querySelector('.dp-msg');
   el.querySelector('button').onclick = function () {
-    msg.textContent = 'Đang cài…';
+    msg.textContent = '${TX.w}';
     fetch('/api/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ koServerUrl: SERVER, koUsername: USER, koPassword: 'dualpage', koServerType: 1,
         koMatchMethod: 1, koSyncBehavior: 1, koSyncClippings: 1, koSyncOnSleep: 1 })
-    }).then(function (r) { return r.text().then(function (t) { msg.textContent = r.ok ? 'Đã bật ✓' : 'Lỗi: ' + t; }); })
-      .catch(function (e) { msg.textContent = 'Lỗi: ' + e; });
+    }).then(function (r) { return r.text().then(function (t) { msg.textContent = r.ok ? '${TX.ok}' : '${TX.err}' + t; }); })
+      .catch(function (e) { msg.textContent = '${TX.err}' + e; });
   };
 });
 `;
@@ -103,6 +127,6 @@ Cách dùng:
     ["dualpage/device.json", JSON.stringify(device, null, 2)],
     ["dualpage/manifest.json", JSON.stringify(manifest, null, 2)],
     ["dualpage/config.json", JSON.stringify(config)],
-    ["dualpage/README.md", readme],
+    ["dualpage/README.md", en ? readmeEn : readme],
   ];
 }

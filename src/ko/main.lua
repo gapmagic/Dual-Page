@@ -27,6 +27,8 @@ local socketutil = require("socketutil")
 local http = require("socket.http")
 local https = require("ssl.https")
 local cfg = require("dualpage_config")
+local EN = cfg.lang == "en"
+local function L(vi, en) if EN then return en end return vi end
 
 local json
 do
@@ -99,7 +101,7 @@ function DualPage:init()
     if self.ui.highlight then
         self.ui.highlight:addToHighlightDialog("12_dualpage_share", function(this)
             return {
-                text = "Chia sẻ Dual Page",
+                text = L("Chia sẻ Dual Page", "Share to Dual Page"),
                 callback = function()
                     local text = util.cleanupSelectedText(this.selected_text.text)
                     this:onClose()
@@ -271,11 +273,11 @@ function DualPage:shareText(text)
     NetworkMgr:runWhenOnline(function()
         local res = request("POST", "highlight", json.encode(payload), "application/json")
         if res then
-            UIManager:show(Notification:new{ text = "Đã chia sẻ tới màn hình chờ của bạn đọc." })
+            UIManager:show(Notification:new{ text = L("Đã chia sẻ tới màn hình chờ của bạn đọc.", "Shared to your partner's sleep screen.") })
             self:refreshScreen()
         else
             self:queue("clips", payload)
-            UIManager:show(InfoMessage:new{ text = "Chưa gửi được. Dual Page sẽ gửi lại khi có mạng.", timeout = 3 })
+            UIManager:show(InfoMessage:new{ text = L("Chưa gửi được. Dual Page sẽ gửi lại khi có mạng.", "Not sent yet. Dual Page will retry when online."), timeout = 3 })
         end
     end)
 end
@@ -309,8 +311,8 @@ function DualPage:setScreensaver(on)
         NetworkMgr:runWhenOnline(function()
             local ok = self:refreshScreen()
             UIManager:show(InfoMessage:new{
-                text = ok and "Đã bật. Cho máy ngủ để xem màn hình chờ Dual Page."
-                    or "Đã bật, nhưng chưa tải được ảnh. Ảnh sẽ được tải khi có mạng.",
+                text = ok and L("Đã bật. Cho máy ngủ để xem màn hình chờ Dual Page.", "On. Put the device to sleep to see the Dual Page screen.")
+                    or L("Đã bật, nhưng chưa tải được ảnh. Ảnh sẽ được tải khi có mạng.", "On, but the image could not be downloaded yet. It will be fetched when online."),
                 timeout = 4,
             })
         end)
@@ -333,20 +335,20 @@ function DualPage:addToMainMenu(menu_items)
         sorting_hint = "main",
         sub_item_table = {
             {
-                text = "Mở Dual Page",
+                text = L("Mở Dual Page", "Open Dual Page"),
                 callback = function() self:showHome() end,
             },
             {
-                text = "Dùng màn hình chờ Dual Page",
+                text = L("Dùng màn hình chờ Dual Page", "Use Dual Page sleep screen"),
                 checked_func = function() return self:isScreensaverOn() end,
                 callback = function() self:setScreensaver(not self:isScreensaverOn()) end,
             },
             {
-                text = "Gửi tiến độ và cập nhật màn hình chờ",
+                text = L("Gửi tiến độ và cập nhật màn hình chờ", "Send progress and refresh sleep screen"),
                 callback = function()
                     NetworkMgr:runWhenOnline(function()
                         self:pushSession()
-                        UIManager:show(Notification:new{ text = "Đã cập nhật Dual Page." })
+                        UIManager:show(Notification:new{ text = L("Đã cập nhật Dual Page.", "Dual Page updated.") })
                     end)
                 end,
             },
@@ -395,9 +397,10 @@ function DualPage:showHome(open_id)
         local res = request("GET", "home?grouped=1")
         local ok, data = pcall(json.decode, res or "")
         if not (ok and type(data) == "table" and type(data.sections) == "table") then
-            UIManager:show(InfoMessage:new{ text = "Không kết nối được Dual Page. Kiểm tra Wi-Fi rồi thử lại." })
+            UIManager:show(InfoMessage:new{ text = L("Không kết nối được Dual Page. Kiểm tra Wi-Fi rồi thử lại.", "Couldn't reach Dual Page. Check Wi-Fi and try again.") })
             return
         end
+        if data.lang then EN = data.lang == "en" end
         self.sections = data.sections
         local rows = {}
         for _, sec in ipairs(data.sections) do
@@ -411,7 +414,7 @@ function DualPage:showHome(open_id)
             if open_id and sec.id == open_id then open_id = sec end
         end
         table.insert(rows, {
-            text = "Cập nhật lúc " .. tostring(data.updated or ""),
+            text = L("Cập nhật lúc ", "Updated ") .. tostring(data.updated or ""),
             callback = function() self:showHome() end,
         })
         self.home_rows = rows
@@ -434,7 +437,7 @@ function DualPage:onItem(sec, id, title, sub)
     elseif id:match("%.dp$") then
         local res = request("GET", "act/" .. util.urlEncode(id))
         UIManager:show(InfoMessage:new{
-            text = res and util.trim(res) or "Không gửi được, thử lại sau.",
+            text = res and util.trim(res) or L("Không gửi được, thử lại sau.", "Couldn't send, try again later."),
             timeout = 3,
             dismiss_callback = function() self:showHome(sec.id) end,
         })
@@ -448,16 +451,16 @@ function DualPage:downloadBook(name)
     local dir = home .. "/DualPage"
     util.makePath(dir)
     local dest = dir .. "/" .. name
-    UIManager:show(InfoMessage:new{ text = "Đang tải sách chung…", timeout = 1 })
+    UIManager:show(InfoMessage:new{ text = L("Đang tải sách chung…", "Downloading the shared book…"), timeout = 1 })
     UIManager:scheduleIn(1, function()
         local ok = request("GET", "act/" .. util.urlEncode(name), nil, nil, dest)
         if not ok then
-            UIManager:show(InfoMessage:new{ text = "Tải sách không thành công." })
+            UIManager:show(InfoMessage:new{ text = L("Tải sách không thành công.", "Download failed.") })
             return
         end
         UIManager:show(ConfirmBox:new{
-            text = "Đã lưu vào " .. dest .. "\n\nMở sách ngay?",
-            ok_text = "Mở",
+            text = L("Đã lưu vào ", "Saved to ") .. dest .. L("\n\nMở sách ngay?", "\n\nOpen it now?"),
+            ok_text = L("Mở", "Open"),
             ok_callback = function()
                 local ReaderUI = require("apps/reader/readerui")
                 ReaderUI:showReader(dest)

@@ -113,6 +113,7 @@ export async function computeState(db, me) {
         id: m.id,
         name: m.name,
         role: m.role,
+        lang: m.lang === "en" ? "en" : "vi",
         tz: m.tz,
         bound: !!m.book_path,
         book: m.book_path ? m.book_path.split("/").pop() : null,

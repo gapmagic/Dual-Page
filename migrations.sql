@@ -2,3 +2,4 @@ ALTER TABLE rooms ADD COLUMN book_title TEXT;
 ALTER TABLE rooms ADD COLUMN book_doc TEXT;
 ALTER TABLE rooms ADD COLUMN book_file TEXT;
 ALTER TABLE rooms ADD COLUMN book_size INTEGER;
+ALTER TABLE members ADD COLUMN lang TEXT;

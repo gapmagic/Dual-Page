@@ -2,16 +2,19 @@
 import { Canvas, W } from "./bmp.js";
 
 const M = 28; // side margin
+let EN = false; // set per render from the viewer's language
+const L = (vi, en) => (EN ? en : vi);
 
 function statusLine(p) {
-  if (!p.bound) return "chưa mở sách chung";
-  if (p.finished) return "đã đọc xong sách ✓";
-  if (p.done_today) return `xong hôm nay ✓ (+${p.today_pct}%)`;
-  if (p.read_today) return `đã đọc ${fmt(p.today_pct)}% / ${fmt(p.target_pct)}%`;
-  return "chưa đọc hôm nay";
+  if (!p.bound) return L("chưa mở sách chung", "not started the book");
+  if (p.finished) return L("đã đọc xong sách ✓", "finished the book ✓");
+  if (p.done_today) return L(`xong hôm nay ✓ (+${p.today_pct}%)`, `done today ✓ (+${p.today_pct}%)`);
+  if (p.read_today) return L(`đã đọc ${fmt(p.today_pct)}% / ${fmt(p.target_pct)}%`, `read ${fmt(p.today_pct)}% / ${fmt(p.target_pct)}%`);
+  return L("chưa đọc hôm nay", "not read today");
 }
 
 export function renderScreen(s) {
+  EN = s.me && s.me.lang === "en";
   const c = new Canvas();
   // header band
   c.rect(0, 0, W, 64);
@@ -25,17 +28,17 @@ export function renderScreen(s) {
   }
 
   if (s.phase === "waiting") {
-    c.center(200, "Đang chờ bạn đọc", "bold");
-    c.center(250, "Mã mời của bạn:", "body");
+    c.center(200, L("Đang chờ bạn đọc", "Waiting for your partner"), "bold");
+    c.center(250, L("Mã mời của bạn:", "Your invite code:"), "body");
     c.center(300, s.code, "bold");
-    c.wrap(M, 360, "Gửi mã này cho bạn đọc để ghép đôi. Phòng khoá khi đủ 2 người.", W - 2 * M, "body", 3);
+    c.wrap(M, 360, L("Gửi mã này cho bạn đọc để ghép đôi. Phòng khoá khi đủ 2 người.", "Send this code to your reading partner. The room locks at 2 people."), W - 2 * M, "body", 3);
     footer(c, s);
     return c;
   }
   if (s.phase === "pending") {
-    c.center(220, `${s.partner.name} đã tham gia!`, "bold");
-    c.center(270, `Chờ xác nhận sprint ${s.sprint_days} ngày`, "body");
-    c.wrap(M, 320, s.me.role === "guest" ? "Mở Plugins → Dual Page hoặc trang web để đồng ý." : "Đang chờ bạn ấy đồng ý.", W - 2 * M, "body", 3);
+    c.center(220, L(`${s.partner.name} đã tham gia!`, `${s.partner.name} joined!`), "bold");
+    c.center(270, L(`Chờ xác nhận sprint ${s.sprint_days} ngày`, `Waiting to start a ${s.sprint_days}-day sprint`), "body");
+    c.wrap(M, 320, s.me.role === "guest" ? L("Mở Plugins → Dual Page hoặc trang web để đồng ý.", "Open Plugins → Dual Page or the website to accept.") : L("Đang chờ bạn ấy đồng ý.", "Waiting for them to accept."), W - 2 * M, "body", 3);
     footer(c, s);
     return c;
   }
@@ -49,28 +52,29 @@ export function renderScreen(s) {
   const n = String(s.streak);
   const bw = c.textWidth(n, "big");
   if (compact) {
-    const lw = c.textWidth("chuỗi đọc chung", "bold");
+    const l1 = L("ngày", "day"), l2 = L("chuỗi đọc chung", "reading streak");
+    const lw = Math.max(c.textWidth(l1, "bold"), c.textWidth(l2, "bold"));
     const x0 = Math.round((W - bw - 18 - lw) / 2);
     c.text(x0, y - 20, n, "big");
-    c.text(x0 + bw + 18, y + 34, "ngày", "bold");
-    c.text(x0 + bw + 18, y + 70, "chuỗi đọc chung", "bold");
+    c.text(x0 + bw + 18, y + 34, l1, "bold");
+    c.text(x0 + bw + 18, y + 70, l2, "bold");
     y += 138;
   } else {
     c.text(Math.round((W - bw) / 2), y - 16, n, "big");
     y += s.book ? 146 : 160;
-    c.center(y, "ngày chuỗi đọc chung", "bold");
+    c.center(y, L("ngày chuỗi đọc chung", "day reading streak"), "bold");
     y += 50;
   }
 
   if (s.me.nudged) {
     c.rect(M - 8, y - 6, W - 2 * (M - 8), 44);
-    c.center(y + 1, `${s.partner.name} nhắc: Đọc thôi nào!`, "bold", 0);
+    c.center(y + 1, trim(c, L(`${s.partner.name} nhắc: Đọc thôi nào!`, `${s.partner.name}: time to read!`), W - 2 * M), "bold", 0);
     y += 52;
   }
 
   // per person: name + today's status, percent, progress bar
   for (const p of [s.me, s.partner]) {
-    const label = p === s.me ? "Bạn" : trim(c, p.name, 140);
+    const label = p === s.me ? L("Bạn", "You") : trim(c, p.name, 140);
     const pt = `${p.progress}%`;
     const ptw = c.textWidth(pt, "bold");
     c.text(M, y, trim(c, `${label}: ${statusLine(p)}`, W - 2 * M - ptw - 12), "body");
@@ -84,13 +88,13 @@ export function renderScreen(s) {
   c.rect(M, y, W - 2 * M, 1);
   y += 10;
   const sp = s.sprint;
-  c.center(y, `Sprint: ngày ${sp.day}/${sp.total_days} · còn ${sp.days_left} ngày`, "body");
+  c.center(y, L(`Sprint: ngày ${sp.day}/${sp.total_days} · còn ${sp.days_left} ngày`, `Sprint: day ${sp.day}/${sp.total_days} · ${sp.days_left} days left`), "body");
   y += 36;
   if (sp.extension && !sp.extension.by_me) {
-    c.center(y, trim(c, `${s.partner.name} đề nghị gia hạn +${sp.extension.days} ngày`, W - 2 * M), "body");
+    c.center(y, trim(c, L(`${s.partner.name} đề nghị gia hạn +${sp.extension.days} ngày`, `${s.partner.name} asks to extend +${sp.extension.days} days`), W - 2 * M), "body");
     y += 36;
   } else if (!quote && s.me.target_pct) {
-    c.center(y, `Mục tiêu mỗi ngày: ${fmt(s.me.target_pct)}% sách`, "body");
+    c.center(y, L(`Mục tiêu mỗi ngày: ${fmt(s.me.target_pct)}% sách`, `Daily goal: ${fmt(s.me.target_pct)}% of the book`), "body");
     y += 36;
   }
 
@@ -99,7 +103,7 @@ export function renderScreen(s) {
     y += 6;
     const boxTop = y;
     const maxLines = Math.max(1, Math.floor((744 - y - 46) / c.lineHeight("body")));
-    c.text(M + 6, y + 8, trim(c, `${s.partner.name} chia sẻ:`, W - 2 * M - 12), "bold");
+    c.text(M + 6, y + 8, trim(c, L(`${s.partner.name} chia sẻ:`, `${s.partner.name} shared:`), W - 2 * M - 12), "bold");
     const end = c.wrap(M + 6, y + 46, `“${quote.text}”`, W - 2 * M - 12, "body", maxLines);
     c.frame(M - 8, boxTop, W - 2 * (M - 8), end - boxTop + 8, 2);
   }
@@ -110,7 +114,7 @@ export function renderScreen(s) {
 function renderRecap(c, s) {
   const r = s.sprint.recap;
   let y = 96;
-  c.center(y, "TỔNG KẾT SPRINT", "bold");
+  c.center(y, L("TỔNG KẾT SPRINT", "SPRINT RECAP"), "bold");
   y += 40;
   if (s.book) {
     c.center(y, trim(c, `“${s.book.title}”`, W - 2 * M), "body");
@@ -119,16 +123,16 @@ function renderRecap(c, s) {
   const n = String(r.shared_days);
   c.text(Math.round((W - c.textWidth(n, "big")) / 2), y - 10, n, "big");
   y += 160;
-  c.center(y, "ngày cùng đạt mục tiêu", "bold");
+  c.center(y, L("ngày cùng đạt mục tiêu", "days you both hit the goal"), "bold");
   y += 44;
   if (r.early_days > 0) {
-    c.center(y, `Xong sớm ${r.early_days} ngày!`, "bold");
+    c.center(y, L(`Xong sớm ${r.early_days} ngày!`, `Finished ${r.early_days} days early!`), "bold");
     y += 44;
   }
   for (const p of [r.me, r.partner]) {
     c.rect(M, y, W - 2 * M, 2);
     y += 12;
-    c.text(M, y, `${trim(c, p.name, 200)}: +${p.pages_pct}% sách, ${p.minutes} phút`, "body");
+    c.text(M, y, `${trim(c, p.name, 200)}: ` + L(`+${p.pages_pct}% sách, ${p.minutes} phút`, `+${p.pages_pct}% of book, ${p.minutes} min`), "body");
     y += 36;
     if (p.quote) {
       y = c.wrap(M + 10, y, `“${p.quote.text}”`, W - 2 * M - 20, "body", 3);
@@ -148,14 +152,15 @@ function trim(c, s, maxW) {
 }
 
 function footer(c, s) {
-  c.center(760, `Cập nhật lúc ${s.updated_label}`, "body");
+  c.center(760, L(`Cập nhật lúc ${s.updated_label}`, `Updated ${s.updated_label}`), "body");
 }
 
-export function renderNoRoom(origin) {
+export function renderNoRoom(origin, lang) {
+  EN = lang === "en";
   const c = new Canvas();
   c.rect(0, 0, W, 64);
   c.center(16, "DUAL PAGE", "bold", 0);
-  c.center(240, "Máy chưa vào phòng nào", "bold");
-  c.wrap(M, 300, `Mở ${origin.replace(/^https?:\/\//, "")} trên điện thoại để tạo phòng hoặc tham gia bằng mã mời. Không cần cài lại plugin.`, W - 2 * M, "body", 5);
+  c.center(240, L("Máy chưa vào phòng nào", "This reader isn't in a room"), "bold");
+  c.wrap(M, 300, L(`Mở ${origin.replace(/^https?:\/\//, "")} trên điện thoại để tạo phòng hoặc tham gia bằng mã mời. Không cần cài lại plugin.`, `Open ${origin.replace(/^https?:\/\//, "")} on your phone to create a room or join with an invite code. No need to reinstall the plugin.`), W - 2 * M, "body", 5);
   return c;
 }

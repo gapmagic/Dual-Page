@@ -5,7 +5,8 @@
 - Trang web: **https://dualpage.online**
 - Thiết bị: XTeink X4 / X4 Pro chạy firmware **CrossPoint 2.0.0** trở lên, cài plugin qua thẻ SD, không cần flash firmware.
 - Thiết bị khác: Kindle, Kobo, PocketBook, Android có **KOReader**. Hai người dùng hai loại máy khác nhau vẫn vào chung một phòng.
-- **[Hướng dẫn sử dụng chi tiết](docs/HUONG-DAN-SU-DUNG.md)**
+- **[Hướng dẫn sử dụng chi tiết](docs/HUONG-DAN-SU-DUNG.md)** ([PDF](docs/DualPage-HuongDanSuDung.pdf)) · **English:** [User guide](docs/USER-GUIDE.md) ([PDF](docs/DualPage-UserGuide.pdf))
+- Giao diện có tiếng Việt và tiếng Anh (nút VI | EN trên web). Mỗi người chọn ngôn ngữ riêng, màn hình chờ và menu trên máy theo ngôn ngữ đó.
 
 ---
 
@@ -95,4 +96,4 @@ Phần kỹ thuật (cấu trúc mã, API, chạy local, deploy) nằm ở [docs
 - [ ] Làm mới giao diện trang web cho đẹp và bắt mắt hơn
 - [ ] Chỗ đặt quảng cáo cho nhà sách, nhà xuất bản và nhãn hàng trên trang Dual Page
 - [ ] Nút "Đọc cuốn tiếp theo" sau khi hết sprint, giữ nguyên phòng
-- [ ] Bản tiếng Anh (sau khi test xong ở Việt Nam)
+- [x] Bản tiếng Anh: web, màn hình chờ, menu máy, plugin, hướng dẫn

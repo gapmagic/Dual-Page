@@ -20,6 +20,8 @@ function cleanTitle(s) {
 function fileSafe(s) {
   return String(s || "book").normalize("NFC").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "").trim().slice(0, 80) || "book";
 }
+const cleanLang = (l) => (l === "en" ? "en" : "vi");
+
 function cleanTz(tz) {
   try {
     new Intl.DateTimeFormat("en", { timeZone: tz });
@@ -91,8 +93,8 @@ async function api(req, env, url, route) {
     await db.batch([
       db.prepare("INSERT INTO rooms (id, code, sprint_days, created_at, book_title) VALUES (?, ?, ?, ?, ?)").bind(roomId, code, days, t, bookTitle),
       db
-        .prepare("INSERT INTO members (id, room_id, token, name, tz, role, created_at) VALUES (?, ?, ?, ?, ?, 'host', ?)")
-        .bind(randomHex(8), roomId, memberToken, name, cleanTz(body.tz), t),
+        .prepare("INSERT INTO members (id, room_id, token, name, tz, role, created_at, lang) VALUES (?, ?, ?, ?, ?, 'host', ?, ?)")
+        .bind(randomHex(8), roomId, memberToken, name, cleanTz(body.tz), t, cleanLang(body.lang)),
     ]);
     await linkDevice(db, body.d, memberToken);
     return json({ t: memberToken, code });
@@ -108,8 +110,8 @@ async function api(req, env, url, route) {
     if (n.n >= 2) return bad("Phòng này đã đủ 2 người", 409);
     const memberToken = randomHex(16);
     await db
-      .prepare("INSERT INTO members (id, room_id, token, name, tz, role, created_at) VALUES (?, ?, ?, ?, ?, 'guest', ?)")
-      .bind(randomHex(8), room.id, memberToken, name, cleanTz(body.tz), now())
+      .prepare("INSERT INTO members (id, room_id, token, name, tz, role, created_at, lang) VALUES (?, ?, ?, ?, ?, 'guest', ?, ?)")
+      .bind(randomHex(8), room.id, memberToken, name, cleanTz(body.tz), now(), cleanLang(body.lang))
       .run();
     await linkDevice(db, body.d, memberToken);
     return json({ t: memberToken });
@@ -121,6 +123,12 @@ async function api(req, env, url, route) {
   const partner = await db.prepare("SELECT * FROM members WHERE room_id = ? AND id != ?").bind(me.room_id, me.id).first();
 
   switch (route) {
+    case "lang": {
+      await db.prepare("UPDATE members SET lang = ? WHERE id = ?").bind(cleanLang(body.lang), me.id).run();
+      me.lang = cleanLang(body.lang);
+      return json(await computeState(db, me));
+    }
+
     case "state": {
       const st = await computeState(db, me);
       const dev = await db.prepare("SELECT COUNT(*) AS n FROM devices WHERE member_id = ?").bind(me.id).first();
@@ -220,7 +228,7 @@ async function api(req, env, url, route) {
       const dev = d && (await db.prepare("SELECT * FROM devices WHERE token = ? AND member_id = ?").bind(d, me.id).first());
       if (!dev) return bad("Thiếu mã máy đọc, hãy tải lại từ trang web");
       const ko = route === "koplugin.zip";
-      const zip = makeZip(ko ? koPluginFiles(url.origin, d) : pluginFiles(url.origin, d));
+      const zip = makeZip(ko ? koPluginFiles(url.origin, d, me.lang) : pluginFiles(url.origin, d, me.lang));
       const name = ko ? "dualpage-koreader.zip" : "dualpage-plugin.zip";
       return new Response(zip, {
         headers: { "content-type": "application/zip", "content-disposition": `attachment; filename="${name}"` },
@@ -291,12 +299,15 @@ async function device(req, env, url, rest) {
   if (!known) return action.endsWith(".bmp") ? text("unknown device", 404) : text("unknown device", 401);
   if (!me) {
     // Installed reader that is not in a room right now.
-    if (action === "sleep.bmp") return new Response(renderNoRoom(url.origin).toBMP(), { headers: { "content-type": "image/bmp", "cache-control": "no-store" } });
-    if (action === "sleep.png") return png(renderNoRoom(url.origin), url);
-    if (action === "lists") return json({ lists: [{ id: "today", title: "Dual Page · chưa vào phòng" }] });
+    if (action === "sleep.bmp") return new Response(renderNoRoom(url.origin, url.searchParams.get("lang")).toBMP(), { headers: { "content-type": "image/bmp", "cache-control": "no-store" } });
+    if (action === "sleep.png") return png(renderNoRoom(url.origin, url.searchParams.get("lang")), url);
+    if (action === "lists") return json({ lists: [{ id: "today", title: "Dual Page · chưa vào phòng / not in a room" }] });
     if (action === "home" || action === "search") {
-      const items = [{ id: "info", title: "Máy chưa vào phòng nào", author: `Mở ${url.host} để tạo hoặc tham gia phòng` }];
-      if (url.searchParams.get("grouped")) return json({ sections: [{ id: "today", title: "Dual Page", note: "chưa vào phòng", items }] });
+      const items = [
+        { id: "info", title: "Máy chưa vào phòng nào", author: `Mở ${url.host} để tạo hoặc tham gia phòng` },
+        { id: "info", title: "This reader isn't in a room", author: `Open ${url.host} to create or join one` },
+      ];
+      if (url.searchParams.get("grouped")) return json({ sections: [{ id: "today", title: "Dual Page", note: "chưa vào phòng / not in a room", items }] });
       return json({ items });
     }
     return text("ok");
@@ -343,19 +354,20 @@ async function device(req, env, url, rest) {
     const b = await req.json().catch(() => ({}));
     const items = Array.isArray(b.items) ? b.items.slice(0, 20) : [];
     await upsertHighlights(db, me, b.doc, items);
-    return text(items.some((i) => i.share) ? "Đã chia sẻ câu này." : "ok");
+    return text(items.some((i) => i.share) ? (me.lang === "en" ? "Shared." : "Đã chia sẻ câu này.") : "ok");
   }
 
   if (action === "home") {
     const list = url.searchParams.get("list");
     if (url.searchParams.get("grouped")) {
       const { s, sections } = await homeSections(db, me);
-      return json({ sections, updated: s.updated_label });
+      return json({ sections, updated: s.updated_label, lang: me.lang === "en" ? "en" : "vi" });
     }
     if (list) {
       const { s, sections } = await homeSections(db, me);
       const sec = sections.find((x) => x.id === list) || sections[0];
-      return json({ items: [...sec.items, { id: "info", title: `Cập nhật lúc ${s.updated_label}`, author: "Thoát ra rồi mở lại để làm mới" }] });
+      const en = me.lang === "en";
+      return json({ items: [...sec.items, { id: "info", title: en ? `Updated ${s.updated_label}` : `Cập nhật lúc ${s.updated_label}`, author: en ? "Go back and reopen to refresh" : "Thoát ra rồi mở lại để làm mới" }] });
     }
     return json({ items: await homeItems(db, me) });
   }
@@ -373,28 +385,29 @@ async function device(req, env, url, rest) {
       if (data) return new Response(data, { headers: { "content-type": "application/octet-stream" } });
     }
     let msg = "Dual Page";
+    const L = (vi, en) => (me.lang === "en" ? en : vi);
     try {
       if (id === "nudge" && partner) {
         await db.prepare("UPDATE members SET nudged_ts = ? WHERE id = ?").bind(now(), partner.id).run();
-        msg = `Đã nhắc ${partner.name}.`;
+        msg = L(`Đã nhắc ${partner.name}.`, `Nudged ${partner.name}.`);
       } else if (id.startsWith("share-")) {
         const r = await db.prepare("UPDATE highlights SET share_ts = ? WHERE member_id = ? AND clip_id = ? AND deleted = 0").bind(now(), me.id, id.slice(6)).run();
-        msg = r.meta.changes ? "Đã chia sẻ câu này." : "Không tìm thấy câu này.";
+        msg = r.meta.changes ? L("Đã chia sẻ câu này.", "Shared.") : L("Không tìm thấy câu này.", "Highlight not found.");
       } else if (id === "seen") {
         await db.prepare("UPDATE members SET nudged_ts = NULL WHERE id = ?").bind(me.id).run();
-        msg = "Đã xem lời nhắc.";
+        msg = L("Đã xem lời nhắc.", "Marked as seen.");
       } else if (id === "ext3" || id === "ext7") {
         await extend(db, me, room, "propose", id === "ext3" ? 3 : 7);
-        msg = "Đã gửi đề nghị gia hạn.";
+        msg = L("Đã gửi đề nghị gia hạn.", "Extension proposed.");
       } else if (id === "ext_yes") {
         await extend(db, me, room, "accept");
-        msg = "Đã đồng ý gia hạn.";
+        msg = L("Đã đồng ý gia hạn.", "Extension accepted.");
       } else if (id === "ext_no") {
         await extend(db, me, room, "decline");
-        msg = "Đã từ chối gia hạn.";
+        msg = L("Đã từ chối gia hạn.", "Extension declined.");
       } else if (id === "accept" && me.role === "guest" && !room.start_ts) {
         await startSprint(db, room);
-        msg = "Sprint đã bắt đầu!";
+        msg = L("Sprint đã bắt đầu!", "The sprint has started!");
       }
     } catch (e) {
       msg = e.message;
@@ -416,6 +429,7 @@ async function png(canvas, url) {
 // plain /home (older plugin installs) gets one list with section header rows.
 async function homeSections(db, me) {
   const s = await computeState(db, me);
+  const L = (vi, en) => (me.lang === "en" ? en : vi);
   const P = s.partner && s.partner.name;
   const sections = [];
   let cur;
@@ -423,69 +437,81 @@ async function homeSections(db, me) {
   const info = (title, author = "") => cur.items.push({ id: "info", title, author });
   const act = (id, title, author = "") => cur.items.push({ id: id + ".dp", title, author });
   const st = (p) =>
-    !p.bound ? "chưa mở sách chung" : p.finished ? "đã đọc xong" : p.done_today ? `đã đạt mục tiêu hôm nay (+${p.today_pct}%)` : p.read_today ? `đã đọc ${Math.round(p.today_pct)}% / ${Math.round(p.target_pct)}%` : "chưa đọc hôm nay";
+    !p.bound
+      ? L("chưa mở sách chung", "hasn't opened the shared book")
+      : p.finished
+        ? L("đã đọc xong", "finished the book")
+        : p.done_today
+          ? L(`đã đạt mục tiêu hôm nay (+${p.today_pct}%)`, `reached today's goal (+${p.today_pct}%)`)
+          : p.read_today
+            ? L(`đã đọc ${Math.round(p.today_pct)}% / ${Math.round(p.target_pct)}%`, `read ${Math.round(p.today_pct)}% of ${Math.round(p.target_pct)}%`)
+            : L("chưa đọc hôm nay", "hasn't read today");
   const bookSection = () => {
     if (!s.book) return;
-    section("book", "Sách chung", s.book.title);
-    info(s.book.title, s.me.bound ? `Bạn đang đọc file: ${s.me.book}` : "Mở cuốn này trên máy để bắt đầu tính tiến độ");
+    section("book", L("Sách chung", "Shared book"), s.book.title);
+    info(s.book.title, s.me.bound ? L(`Bạn đang đọc file: ${s.me.book}`, `Your file: ${s.me.book}`) : L("Mở cuốn này trên máy để bắt đầu tính tiến độ", "Open this book on your reader to start tracking"));
     if (s.book.file) {
       const ext = s.book.file.match(/\.[^.]+$/)?.[0] || ".epub";
-      cur.items.push({ id: fileSafe(s.book.title) + ext, title: "Tải sách chung về máy", author: "Lưu vào thư mục DualPage" });
+      cur.items.push({ id: fileSafe(s.book.title) + ext, title: L("Tải sách chung về máy", "Download the shared book"), author: L("Lưu vào thư mục DualPage", "Saved to the DualPage folder") });
     }
-    info("Chỉ sách chung được tính tiến độ", "Đọc sách khác vẫn được, chỉ không cộng vào chuỗi");
+    info(L("Chỉ sách chung được tính tiến độ", "Only the shared book counts"), L("Đọc sách khác vẫn được, chỉ không cộng vào chuỗi", "Other books are fine, they just don't count"));
   };
 
   if (s.phase === "waiting") {
-    section("today", "Chờ bạn đọc vào phòng", `Mã mời ${s.code}`);
-    info(`Mã mời: ${s.code}`, "Gửi mã này cho bạn đọc để ghép đôi");
-    info(`Sprint ${s.sprint_days} ngày`, "Bắt đầu khi bạn đọc vào phòng và đồng ý");
+    section("today", L("Chờ bạn đọc vào phòng", "Waiting for your partner"), L(`Mã mời ${s.code}`, `Invite code ${s.code}`));
+    info(L(`Mã mời: ${s.code}`, `Invite code: ${s.code}`), L("Gửi mã này cho bạn đọc để ghép đôi", "Send this code to your reading partner"));
+    info(L(`Sprint ${s.sprint_days} ngày`, `${s.sprint_days}-day sprint`), L("Bắt đầu khi bạn đọc vào phòng và đồng ý", "Starts when your partner joins and accepts"));
     bookSection();
     return { s, sections };
   }
   if (s.phase === "pending") {
-    section("today", "Bắt đầu sprint", me.role === "guest" ? "Chờ bạn đồng ý" : `Chờ ${P} đồng ý`);
-    if (me.role === "guest") act("accept", `Đồng ý sprint ${s.sprint_days} ngày`, "Bấm để bắt đầu cùng nhau");
-    else info(`Chờ ${P} đồng ý sprint ${s.sprint_days} ngày`, "Mở lại mục này để làm mới");
+    section("today", L("Bắt đầu sprint", "Start the sprint"), me.role === "guest" ? L("Chờ bạn đồng ý", "Waiting for you") : L(`Chờ ${P} đồng ý`, `Waiting for ${P}`));
+    if (me.role === "guest") act("accept", L(`Đồng ý sprint ${s.sprint_days} ngày`, `Accept the ${s.sprint_days}-day sprint`), L("Bấm để bắt đầu cùng nhau", "Tap to start together"));
+    else info(L(`Chờ ${P} đồng ý sprint ${s.sprint_days} ngày`, `Waiting for ${P} to accept the ${s.sprint_days}-day sprint`), L("Mở lại mục này để làm mới", "Reopen to refresh"));
     bookSection();
     return { s, sections };
   }
   if (s.phase === "recap") {
     const r = s.sprint.recap;
-    section("today", "Tổng kết sprint", `${r.shared_days} ngày cùng đạt mục tiêu`);
-    info(`${r.shared_days} ngày cùng đạt mục tiêu`, r.early_days ? `Xong sớm ${r.early_days} ngày!` : `Sprint ${s.sprint.total_days} ngày`);
-    for (const x of [r.me, r.partner]) info(`${x.name}: +${x.pages_pct}% sách, ${x.minutes} phút`, x.quote ? `“${x.quote.text.slice(0, 120)}”` : "");
+    section("today", L("Tổng kết sprint", "Sprint recap"), L(`${r.shared_days} ngày cùng đạt mục tiêu`, `${r.shared_days} days you both hit the goal`));
+    info(L(`${r.shared_days} ngày cùng đạt mục tiêu`, `${r.shared_days} days you both hit the goal`), r.early_days ? L(`Xong sớm ${r.early_days} ngày!`, `Finished ${r.early_days} days early!`) : L(`Sprint ${s.sprint.total_days} ngày`, `${s.sprint.total_days}-day sprint`));
+    for (const x of [r.me, r.partner]) info(`${x.name}: ` + L(`+${x.pages_pct}% sách, ${x.minutes} phút`, `+${x.pages_pct}% of book, ${x.minutes} min`), x.quote ? `“${x.quote.text.slice(0, 120)}”` : "");
     bookSection();
     return { s, sections };
   }
 
   // Active sprint
   const nudged = s.me.nudged;
-  section("today", "Hôm nay", nudged ? `${P} nhắc bạn đọc!` : `Chuỗi đọc chung ${s.streak} ngày`);
-  if (nudged) act("seen", `${P} nhắc bạn: Đọc thôi nào!`, "Bấm để đánh dấu đã xem");
-  info(`Chuỗi đọc chung: ${s.streak} ngày`, "Tăng 1 vào ngày cả hai cùng đạt mục tiêu");
-  info(`Bạn: ${st(s.me)}`, `Đã đọc ${s.me.progress}% sách`);
-  info(`${P}: ${st(s.partner)}`, `Đã đọc ${s.partner.progress}% sách`);
-  if (!s.partner.done_today) act("nudge", `Nhắc ${P} đọc`, "Lời nhắc hiện trên màn hình chờ của bạn ấy");
+  section("today", L("Hôm nay", "Today"), nudged ? L(`${P} nhắc bạn đọc!`, `${P} nudged you to read!`) : L(`Chuỗi đọc chung ${s.streak} ngày`, `${s.streak}-day reading streak`));
+  if (nudged) act("seen", L(`${P} nhắc bạn: Đọc thôi nào!`, `${P}: time to read!`), L("Bấm để đánh dấu đã xem", "Tap to mark as seen"));
+  info(L(`Chuỗi đọc chung: ${s.streak} ngày`, `Reading streak: ${s.streak} days`), L("Tăng 1 vào ngày cả hai cùng đạt mục tiêu", "Grows on days you both reach your goal"));
+  info(L("Bạn: ", "You: ") + st(s.me), L(`Đã đọc ${s.me.progress}% sách`, `${s.me.progress}% of the book read`));
+  info(`${P}: ${st(s.partner)}`, L(`Đã đọc ${s.partner.progress}% sách`, `${s.partner.progress}% of the book read`));
+  if (!s.partner.done_today) act("nudge", L(`Nhắc ${P} đọc`, `Nudge ${P} to read`), L("Lời nhắc hiện trên màn hình chờ của bạn ấy", "Shows on their sleep screen"));
 
   const others = s.me.highlights.filter((h) => !s.me.shared || h.id !== s.me.shared.id).slice(0, 6);
-  section("quotes", "Câu hay", s.partner.shared ? `${P} đang chia sẻ một câu` : `${s.me.highlights.length} câu bạn đã highlight`);
-  if (s.partner.shared) info(`${P} chia sẻ với bạn`, `“${s.partner.shared.text}”`);
-  if (s.me.shared) info("Câu bạn đang chia sẻ", `“${s.me.shared.text}”`);
-  for (const h of others) act("share-" + h.id, `Chia sẻ: “${h.text.slice(0, 70)}${h.text.length > 70 ? "…" : ""}”`, h.chapter || "Bấm để hiện câu này bên bạn đọc");
-  if (!s.me.highlights.length) info("Chưa có câu highlight nào", "Highlight trong sách chung, câu mới nhất tự hiện bên bạn đọc");
+  section("quotes", L("Câu hay", "Highlights"), s.partner.shared ? L(`${P} đang chia sẻ một câu`, `${P} shared a highlight`) : L(`${s.me.highlights.length} câu bạn đã highlight`, `${s.me.highlights.length} of your highlights`));
+  if (s.partner.shared) info(L(`${P} chia sẻ với bạn`, `${P} shared with you`), `“${s.partner.shared.text}”`);
+  if (s.me.shared) info(L("Câu bạn đang chia sẻ", "You're sharing"), `“${s.me.shared.text}”`);
+  for (const h of others) act("share-" + h.id, L("Chia sẻ: ", "Share: ") + `“${h.text.slice(0, 70)}${h.text.length > 70 ? "…" : ""}”`, h.chapter || L("Bấm để hiện câu này bên bạn đọc", "Tap to show this on your partner's screen"));
+  if (!s.me.highlights.length) info(L("Chưa có câu highlight nào", "No highlights yet"), L("Highlight trong sách chung, câu mới nhất tự hiện bên bạn đọc", "Highlight in the shared book; your newest one shows on your partner's screen"));
 
   bookSection();
 
   const ext = s.sprint.extension;
-  section("sprint", "Sprint và gia hạn", ext && !ext.by_me ? `${P} đề nghị +${ext.days} ngày` : `Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`);
-  info(`Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`, `Mục tiêu của bạn: ${s.me.target_pct ? Math.round(s.me.target_pct) : "?"}% sách mỗi ngày`);
+  section(
+    "sprint",
+    L("Sprint và gia hạn", "Sprint & extension"),
+    ext && !ext.by_me ? L(`${P} đề nghị +${ext.days} ngày`, `${P} asks for +${ext.days} days`) : L(`Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`, `Day ${s.sprint.day}/${s.sprint.total_days}, ${s.sprint.days_left} days left`)
+  );
+  info(L(`Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`, `Day ${s.sprint.day}/${s.sprint.total_days}, ${s.sprint.days_left} days left`), L(`Mục tiêu của bạn: ${s.me.target_pct ? Math.round(s.me.target_pct) : "?"}% sách mỗi ngày`, `Your goal: ${s.me.target_pct ? Math.round(s.me.target_pct) : "?"}% of the book per day`));
   if (ext && !ext.by_me) {
-    act("ext_yes", `Đồng ý gia hạn +${ext.days} ngày`, `${P} đề nghị`);
-    act("ext_no", "Từ chối gia hạn");
-  } else if (ext) info(`Đã đề nghị gia hạn +${ext.days} ngày`, `Chờ ${P} đồng ý`);
+    act("ext_yes", L(`Đồng ý gia hạn +${ext.days} ngày`, `Accept +${ext.days} days`), L(`${P} đề nghị`, `Proposed by ${P}`));
+    act("ext_no", L("Từ chối gia hạn", "Decline the extension"));
+  } else if (ext) info(L(`Đã đề nghị gia hạn +${ext.days} ngày`, `You proposed +${ext.days} days`), L(`Chờ ${P} đồng ý`, `Waiting for ${P}`));
   else {
-    act("ext3", "Đề nghị gia hạn +3 ngày", "Cả hai phải đồng ý");
-    act("ext7", "Đề nghị gia hạn +7 ngày", "Cả hai phải đồng ý");
+    act("ext3", L("Đề nghị gia hạn +3 ngày", "Propose +3 days"), L("Cả hai phải đồng ý", "You both need to agree"));
+    act("ext7", L("Đề nghị gia hạn +7 ngày", "Propose +7 days"), L("Cả hai phải đồng ý", "You both need to agree"));
   }
   return { s, sections };
 }
@@ -497,7 +523,8 @@ async function homeItems(db, me) {
     items.push({ id: "info", title: `—— ${sec.title.toUpperCase()} ——`, author: sec.note });
     items.push(...sec.items);
   }
-  items.push({ id: "info", title: `Cập nhật lúc ${s.updated_label}`, author: "Mở lại mục này để làm mới" });
+  const en = me.lang === "en";
+  items.push({ id: "info", title: en ? `Updated ${s.updated_label}` : `Cập nhật lúc ${s.updated_label}`, author: en ? "Reopen to refresh" : "Mở lại mục này để làm mới" });
   return items;
 }
 
