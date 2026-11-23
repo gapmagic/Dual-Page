@@ -22,6 +22,6 @@ jobs:
             code=$(curl -s -o /dev/null -w '%{http_code}' "$URL/" || true)
             echo "$URL -> $code"; [ "$code" = 200 ] && break; sleep 10
           done
-          curl -fsS -X POST "$URL/api/rooms" -H 'content-type: application/json' -d '{"name":"smoke","sprint_days":7,"tz":"UTC"}' | head -c 120
+          curl -fsS -X POST "$URL/api/rooms" -H 'content-type: application/json' -d '{"name":"smoke","sprint_days":7,"tz":"UTC","book_title":"Smoke"}' | head -c 120
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
