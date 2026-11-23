@@ -154,11 +154,14 @@ function render() {
   }
   if (s.phase !== "active") out.push(bookCard(s));
   if (s.phase === "active" || s.phase === "recap" || s.phase === "pending") {
-    out.push(\`<div class="card"><h2>Cập nhật tiến độ thủ công</h2><p class="muted">Máy đọc có plugin sẽ tự gửi tiến độ. Dùng ô này khi đọc trên thiết bị khác hoặc để test.\${s.me.bound ? "" : " Lần nhập đầu tiên là điểm bắt đầu."}</p>
-      <div class="row"><input id="pc" type="number" min="0" max="100" placeholder="% sách" value="\${s.me.progress || ""}"><input id="mn" type="number" min="0" placeholder="phút đọc"><button onclick="act('progress',{percent:Number($('#pc').value),minutes:Number($('#mn').value||0)})">Lưu</button></div>
-      \${s.me.bound ? \`<p class="muted"><a href="#" onclick="if(confirm('Đặt lại tiến độ của bạn về 0?'))act('rebind');return false">Đặt lại tiến độ của tôi</a></p>\` : ""}</div>\`);
-    out.push(\`<div class="card"><h2>Trích dẫn</h2>
-      <textarea id="qt" rows="2" placeholder="1-2 câu bạn thích"></textarea><div class="row"><input id="qp" placeholder="Trang (tuỳ chọn)"><button onclick="act('quote',{text:$('#qt').value,page:$('#qp').value})">Lưu</button></div>
+    out.push(\`<div class="card"><details><summary><b>Đọc ở chỗ khác? Ghi lại tiến độ</b></summary>
+      <p class="muted">Đọc trên XTeink thì tiến độ tự cập nhật, không cần làm gì. Mục này dành cho lúc bạn đọc sách chung ở nơi khác (sách giấy, điện thoại): nhập bạn đã đọc tới bao nhiêu % cuốn sách.\${s.me.bound ? "" : " Lần nhập đầu tiên được tính là điểm bắt đầu."}</p>
+      <label>Đã đọc tới (% cuốn sách) · Thời gian đọc (phút, tuỳ chọn)</label>
+      <div class="row"><input id="pc" type="number" min="0" max="100" placeholder="VD: 42" value="\${s.me.progress || ""}"><input id="mn" type="number" min="0" placeholder="VD: 20"><button onclick="act('progress',{percent:Number($('#pc').value),minutes:Number($('#mn').value||0)})">Lưu</button></div>
+      \${s.me.bound ? \`<p class="muted"><a href="#" onclick="if(confirm('Đặt lại tiến độ của bạn về 0?'))act('rebind');return false">Đặt lại tiến độ của tôi</a></p>\` : ""}</details></div>\`);
+    out.push(\`<div class="card"><h2>Câu hay trong sách</h2>
+      <p class="muted">Lưu 1-2 câu bạn thích trong sách chung. Cuối sprint, trang Tổng kết hiện câu yêu thích của mỗi người (bấm "chọn làm yêu thích"). Trên máy đọc: Plugins → Dual Page → Tìm kiếm rồi gõ câu.</p>
+      <textarea id="qt" rows="2" placeholder="Gõ câu bạn thích…"></textarea><div class="row"><input id="qp" placeholder="Trang (tuỳ chọn)"><button onclick="act('quote',{text:$('#qt').value,page:$('#qp').value})">Lưu</button></div>
       \${s.quotes.map((q) => \`<div class="q \${q.mine && q.id === s.me.fav_quote ? "fav" : ""}">“\${esc(q.text)}” <span class="muted">\${esc(q.page || "")} · \${q.mine ? "bạn" : esc(s.partner?.name)}</span>
         \${q.mine ? (q.id === s.me.fav_quote ? ' <span class="ok">★ yêu thích</span>' : \` <a href="#" onclick="act('quote/fav',{id:\${q.id}});return false">chọn làm yêu thích</a>\`) : ""}</div>\`).join("")}</div>\`);
   }
