@@ -11,4 +11,14 @@ if [ -z "$ID" ]; then
 fi
 sed -i.bak "s/^database_id = .*/database_id = \"$ID\"/" wrangler.toml && rm -f wrangler.toml.bak
 npx wrangler d1 execute readpal --remote --file schema.sql -y
+# A new account has no workers.dev subdomain yet: register one once.
+API=https://api.cloudflare.com/client/v4
+AUTH="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+ACC=${CLOUDFLARE_ACCOUNT_ID:-$(curl -fsS -H "$AUTH" "$API/accounts" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).result[0].id))')}
+SUB=$(curl -sS -H "$AUTH" "$API/accounts/$ACC/workers/subdomain" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).result?.subdomain||"")}catch{console.log("")}})')
+if [ -z "$SUB" ]; then
+  SUB="dualpage-$(openssl rand -hex 3)"
+  curl -fsS -X PUT -H "$AUTH" -H "Content-Type: application/json" -d "{\"subdomain\":\"$SUB\"}" "$API/accounts/$ACC/workers/subdomain" >/dev/null
+  echo "Registered $SUB.workers.dev"
+fi
 npx wrangler deploy
