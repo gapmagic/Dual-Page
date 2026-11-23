@@ -138,7 +138,7 @@ function render() {
     out.push(\`<div class="card"><h2>Tổng kết sprint</h2><div class="big">\${r.shared_days}</div><div class="sub">ngày cùng đạt mục tiêu</div>
       \${r.early_days ? \`<p class="ok" style="text-align:center">Xong sớm \${r.early_days} ngày!</p>\` : ""}
       \${[r.me, r.partner].map((p) => \`<hr><b>\${esc(p.name)}</b>: +\${p.pages_pct}% sách, \${p.minutes} phút\${p.quote ? \`<div class="q fav">“\${esc(p.quote.text)}” <span class="muted">\${esc(p.quote.page || "")}</span></div>\` : '<p class="muted">Chưa có trích dẫn</p>'}\`).join("")}
-      <p class="muted">Mỗi người tự chọn trích dẫn yêu thích của mình ở mục Trích dẫn bên dưới.</p></div>\`);
+</div>\`);
   } else {
     if (s.me.nudged) out.push(\`<div class="banner"><b>\${esc(s.partner.name)} nhắc: Đọc thôi nào!</b><br><button onclick="act('nudge/dismiss')">Đã xem</button></div>\`);
     const sp = s.sprint;
@@ -153,13 +153,6 @@ function render() {
       : \`<p class="muted">Cả hai phải đồng ý.</p><button class="ghost" onclick="act('extend',{action:'propose',days:3})">Đề nghị +3 ngày</button><button class="ghost" onclick="act('extend',{action:'propose',days:7})">Đề nghị +7 ngày</button>\`}</div>\`);
   }
   if (s.phase !== "active") out.push(bookCard(s));
-  if (s.phase === "active" || s.phase === "recap" || s.phase === "pending") {
-    out.push(\`<div class="card"><h2>Câu hay trong sách</h2>
-      <p class="muted">Lưu 1-2 câu bạn thích trong sách chung. Cuối sprint, trang Tổng kết hiện câu yêu thích của mỗi người (bấm "chọn làm yêu thích"). Trên máy đọc: Plugins → Dual Page → Tìm kiếm rồi gõ câu.</p>
-      <textarea id="qt" rows="2" placeholder="Gõ câu bạn thích…"></textarea><div class="row"><input id="qp" placeholder="Trang (tuỳ chọn)"><button onclick="act('quote',{text:$('#qt').value,page:$('#qp').value})">Lưu</button></div>
-      \${s.quotes.map((q) => \`<div class="q \${q.mine && q.id === s.me.fav_quote ? "fav" : ""}">“\${esc(q.text)}” <span class="muted">\${esc(q.page || "")} · \${q.mine ? "bạn" : esc(s.partner?.name)}</span>
-        \${q.mine ? (q.id === s.me.fav_quote ? ' <span class="ok">★ yêu thích</span>' : \` <a href="#" onclick="act('quote/fav',{id:\${q.id}});return false">chọn làm yêu thích</a>\`) : ""}</div>\`).join("")}</div>\`);
-  }
   const linked = s.devices > 0;
   out.push(\`<div class="card"><h2>Máy đọc XTeink</h2>
     \${linked ? \`<p class="ok">Máy đọc của bạn đã nối với phòng này ✓</p><p class="muted">Plugin chỉ cài một lần. Khi tạo hoặc tham gia phòng mới trên trình duyệt này, máy tự chuyển sang phòng mới. <a href="#" onclick="getPlugin();return false">Tải lại plugin</a></p>\`

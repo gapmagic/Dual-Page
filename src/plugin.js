@@ -11,7 +11,6 @@ export function pluginFiles(origin, token) {
       items: "items",
       fields: { title: "title", author: "author", id: "id" },
       page_size: 12,
-      search: { url: `${D}/search?q={query}` },
     },
     download: {
       url: `${D}/act/{id_enc}`,
@@ -65,7 +64,6 @@ Cách dùng:
 - Chỉ sách chung của phòng được tính vào tiến độ. Đọc sách riêng thoải mái, không ảnh hưởng gì.
 - Nếu phòng có file sách chung: Home → Plugins → Dual Page → "Tải sách chung về máy" (lưu vào thư mục DualPage).
 - Home → Plugins → Dual Page: xem trạng thái (mở lại để làm mới), nhắc bạn đọc, gia hạn sprint.
-- Lưu trích dẫn: trong Dual Page bấm Tìm kiếm, gõ 1-2 câu rồi xác nhận.
 `;
   return [
     ["dualpage/device.json", JSON.stringify(device, null, 2)],

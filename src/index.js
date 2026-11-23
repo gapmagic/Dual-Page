@@ -168,20 +168,6 @@ async function api(req, env, url, route) {
       await db.prepare("UPDATE members SET nudged_ts = NULL WHERE id = ?").bind(me.id).run();
       return json(await computeState(db, await loadMember(db, token)));
 
-    case "quote": {
-      const q = String(body.text || "").trim().slice(0, 400);
-      if (!q) return bad("Trích dẫn trống");
-      await addQuote(db, me, q, String(body.page || "").slice(0, 20) || `${pct(me.bp)}%`);
-      return json(await computeState(db, me));
-    }
-
-    case "quote/fav": {
-      const q = await db.prepare("SELECT * FROM quotes WHERE id = ? AND member_id = ?").bind(Number(body.id), me.id).first();
-      if (!q) return bad("Chỉ chọn được trích dẫn của chính bạn");
-      await db.prepare("UPDATE members SET fav_quote = ? WHERE id = ?").bind(q.id, me.id).run();
-      return json(await computeState(db, await loadMember(db, token)));
-    }
-
     case "extend":
       return json(await extend(db, me, room, body.action, Number(body.days)));
 
@@ -332,15 +318,6 @@ async function device(req, env, url, rest) {
 
   if (action === "home") return json({ items: await homeItems(db, me) });
 
-  if (action === "search") {
-    const q = (url.searchParams.get("q") || "").trim().slice(0, 400);
-    if (q.length >= 3) {
-      await addQuote(db, me, q, `${pct(me.bp)}%`);
-      return json({ items: [{ id: "info", title: "Đã lưu trích dẫn ✓", author: `“${q.slice(0, 80)}” · ${pct(me.bp)}%` }] });
-    }
-    return json({ items: [{ id: "info", title: "Trích dẫn quá ngắn", author: "Gõ 1-2 câu rồi tìm để lưu" }] });
-  }
-
   if (action.startsWith("act/")) {
     const id = decodeURIComponent(action.slice(4)).replace(/\.txt$/, "").replace(/\.dp$/, "");
     const room = await db.prepare("SELECT * FROM rooms WHERE id = ?").bind(me.room_id).first();
@@ -426,7 +403,6 @@ async function homeItems(db, me) {
     act("ext3", "Đề nghị gia hạn +3 ngày");
     act("ext7", "Đề nghị gia hạn +7 ngày");
   }
-  info("Lưu trích dẫn: bấm Tìm kiếm", "Gõ 1-2 câu, kèm trang/% hiện tại");
   info(`Cập nhật lúc ${s.updated_label}`, "Mở lại mục này để làm mới");
   return items;
 }
