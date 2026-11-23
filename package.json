@@ -1,15 +1,18 @@
 {
   "name": "readpal",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Reading Pal for XTeink",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "wrangler dev",
+    "deploy": "./scripts/deploy.sh",
+    "db:local": "wrangler d1 execute readpal --local --file schema.sql"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "wrangler": "^4.166.0"
-  }
+  },
+  "type": "module",
+  "private": true
 }
