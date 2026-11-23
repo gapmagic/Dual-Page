@@ -1,6 +1,6 @@
 # Dual Page
 
-**Đọc sách cùng nhau, mỗi người một máy.** Dual Page ghép hai người đọc thành một cặp. Hai bạn đọc chung một cuốn sách trong một "sprint" có thời hạn và giữ chung một chuỗi ngày đọc (Duo Streak). Mỗi khi máy đi ngủ, màn hình chờ e-ink hiện tiến độ của cả hai và câu highlight bạn kia vừa chia sẻ.
+**Đọc sách cùng nhau, giữ lửa mỗi ngày.** Dual Page ghép hai người đọc thành một cặp. Hai bạn đọc chung một cuốn sách trong một "sprint" có thời hạn và giữ chung một chuỗi ngày đọc (Duo Streak). Mỗi khi máy đi ngủ, màn hình chờ e-ink hiện tiến độ của cả hai và câu highlight bạn kia vừa chia sẻ.
 
 - Trang web: **https://dualpage.online**
 - Thiết bị: XTeink X4 / X4 Pro chạy firmware **CrossPoint 2.0.0** trở lên, cài plugin qua thẻ SD, không cần flash firmware.
