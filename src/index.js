@@ -1,5 +1,5 @@
 import { computeState, ingest, firstSeen, loadMember, inviteCode, randomHex, now, pct, FULL } from "./logic.js";
-import { renderScreen } from "./screen.js";
+import { renderScreen, renderNoRoom } from "./screen.js";
 import { makeZip } from "./zip.js";
 import { pluginFiles } from "./plugin.js";
 import { PAGE } from "./web.js";
@@ -84,6 +84,7 @@ async function api(req, env, url, route) {
         .prepare("INSERT INTO members (id, room_id, token, name, tz, role, created_at) VALUES (?, ?, ?, ?, ?, 'host', ?)")
         .bind(randomHex(8), roomId, memberToken, name, cleanTz(body.tz), t),
     ]);
+    await linkDevice(db, body.d, memberToken);
     return json({ t: memberToken, code });
   }
 
@@ -100,6 +101,7 @@ async function api(req, env, url, route) {
       .prepare("INSERT INTO members (id, room_id, token, name, tz, role, created_at) VALUES (?, ?, ?, ?, ?, 'guest', ?)")
       .bind(randomHex(8), room.id, memberToken, name, cleanTz(body.tz), now())
       .run();
+    await linkDevice(db, body.d, memberToken);
     return json({ t: memberToken });
   }
 
@@ -109,8 +111,23 @@ async function api(req, env, url, route) {
   const partner = await db.prepare("SELECT * FROM members WHERE room_id = ? AND id != ?").bind(me.room_id, me.id).first();
 
   switch (route) {
-    case "state":
-      return json(await computeState(db, me));
+    case "state": {
+      const st = await computeState(db, me);
+      const dev = await db.prepare("SELECT COUNT(*) AS n FROM devices WHERE member_id = ?").bind(me.id).first();
+      st.devices = dev.n;
+      return json(st);
+    }
+
+    case "device": {
+      // Returns this browser's reader token (creating one if needed) and links it to me.
+      let d = String(body.d || "");
+      const known = d && (await db.prepare("SELECT 1 FROM devices WHERE token = ?").bind(d).first());
+      if (!known) {
+        d = randomHex(16);
+        await db.prepare("INSERT INTO devices (token, member_id, created_at) VALUES (?, ?, ?)").bind(d, me.id, now()).run();
+      } else await db.prepare("UPDATE devices SET member_id = ? WHERE token = ?").bind(me.id, d).run();
+      return json({ d });
+    }
 
     case "accept": {
       if (me.role !== "guest") return bad("Chỉ người được mời mới xác nhận");
@@ -168,7 +185,10 @@ async function api(req, env, url, route) {
       return json(await extend(db, me, room, body.action, Number(body.days)));
 
     case "plugin.zip": {
-      const files = pluginFiles(url.origin, token, me.name);
+      const d = url.searchParams.get("d");
+      const dev = d && (await db.prepare("SELECT * FROM devices WHERE token = ? AND member_id = ?").bind(d, me.id).first());
+      if (!dev) return bad("Thiếu mã máy đọc, hãy tải lại từ trang web");
+      const files = pluginFiles(url.origin, d);
       const zip = makeZip(files);
       return new Response(zip, {
         headers: { "content-type": "application/zip", "content-disposition": 'attachment; filename="dualpage-plugin.zip"' },
@@ -189,6 +209,26 @@ async function startSprint(db, room) {
       .prepare(`UPDATE members SET target_bp = MAX(1, (${FULL} - bp + ? - 1) / ?) WHERE room_id = ? AND book_path IS NOT NULL`)
       .bind(d - 1, d, room.id),
   ]);
+}
+
+async function linkDevice(db, d, memberToken) {
+  if (!d || String(d).length < 16) return;
+  await db
+    .prepare("UPDATE devices SET member_id = (SELECT id FROM members WHERE token = ?) WHERE token = ?")
+    .bind(memberToken, String(d))
+    .run();
+}
+
+// A reader token is either a device token (plugin v2) or a member token (first plugins).
+async function memberForDevice(db, token) {
+  if (!token || token.length < 16) return { known: false, me: null };
+  const dev = await db.prepare("SELECT member_id FROM devices WHERE token = ?").bind(token).first();
+  if (dev) {
+    const me = dev.member_id ? await db.prepare("SELECT * FROM members WHERE id = ?").bind(dev.member_id).first() : null;
+    return { known: true, me };
+  }
+  const me = await loadMember(db, token);
+  return { known: !!me, me };
 }
 
 async function addQuote(db, me, q, page) {
@@ -215,8 +255,15 @@ async function device(req, env, url, rest) {
   const db = env.DB;
   const [token, ...parts] = rest.split("/");
   const action = parts.join("/");
-  const me = await loadMember(db, token);
-  if (!me) return action.endsWith(".bmp") ? text("unknown device", 404) : text("unknown device", 401);
+  const { known, me } = await memberForDevice(db, token);
+  if (!known) return action.endsWith(".bmp") ? text("unknown device", 404) : text("unknown device", 401);
+  if (!me) {
+    // Installed reader that is not in a room right now.
+    if (action === "sleep.bmp") return new Response(renderNoRoom(url.origin), { headers: { "content-type": "image/bmp", "cache-control": "no-store" } });
+    if (action === "home" || action === "search")
+      return json({ items: [{ id: "info", title: "Máy chưa vào phòng nào", author: `Mở ${url.host} để tạo hoặc tham gia phòng` }] });
+    return text("ok");
+  }
 
   if (action === "session" || action === "exit") {
     const raw = await req.text();

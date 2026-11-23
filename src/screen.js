@@ -124,3 +124,12 @@ function trim(c, s, maxW) {
 function footer(c, s) {
   c.center(760, `Cập nhật lúc ${s.updated_label}`, "body");
 }
+
+export function renderNoRoom(origin) {
+  const c = new Canvas();
+  c.rect(0, 0, W, 64);
+  c.center(16, "DUAL PAGE", "bold", 0);
+  c.center(240, "Máy chưa vào phòng nào", "bold");
+  c.wrap(M, 300, `Mở ${origin.replace(/^https?:\/\//, "")} trên điện thoại để tạo phòng hoặc tham gia bằng mã mời. Không cần cài lại plugin.`, W - 2 * M, "body", 5);
+  return c.toBMP();
+}

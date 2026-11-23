@@ -45,3 +45,8 @@ CREATE TABLE IF NOT EXISTS seen_events (
   id TEXT PRIMARY KEY,
   ts INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS devices (
+  token TEXT PRIMARY KEY,      -- written into the plugin's config.json, never changes
+  member_id TEXT,              -- current room membership (NULL = not in a room)
+  created_at INTEGER NOT NULL
+);

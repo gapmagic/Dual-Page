@@ -1,5 +1,5 @@
 // Builds the per-person SD-card plugin folder (zipped by the API).
-export function pluginFiles(origin, token, name) {
+export function pluginFiles(origin, token) {
   const D = "{cfg.server}/d/{cfg.token}";
   const device = {
     title: "Dual Page",
@@ -50,10 +50,10 @@ export function pluginFiles(origin, token, name) {
     description: "Giữ chuỗi đọc chung với bạn đọc",
     version: "0.1.0",
   };
-  const config = { server: origin, token, name };
-  const readme = `Dual Page (${name})
+  const config = { server: origin, token };
+  const readme = `Dual Page
 
-Cài đặt một lần:
+Cài đặt một lần cho máy này (đổi phòng, đổi bạn đọc sau này chỉ cần làm trên web):
 1. Chép cả thư mục "dualpage" vào thư mục "plugins" ở gốc thẻ SD (tạo thư mục plugins nếu chưa có), để có /plugins/dualpage/device.json.
 2. Settings → Connectivity → Plugins: bật Enabled.
 3. Settings → Sleep Screen: chọn Custom để màn hình chờ hiện chuỗi đọc.

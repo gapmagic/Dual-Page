@@ -67,10 +67,14 @@ function renderStart() {
 }
 async function create() {
   const d = $("#days").value === "custom" ? $("#custom").value : $("#days").value;
-  try { const r = await call("rooms", { name: $("#name").value, sprint_days: Number(d), tz }); setToken(r.t); } catch {}
+  try { const r = await call("rooms", { name: $("#name").value, sprint_days: Number(d), tz, d: dev() }); setToken(r.t); } catch {}
 }
 async function join() {
-  try { const r = await call("join", { code: $("#code").value, name: $("#name").value, tz }); setToken(r.t); } catch {}
+  try { const r = await call("join", { code: $("#code").value, name: $("#name").value, tz, d: dev() }); setToken(r.t); } catch {}
+}
+function dev() { try { return localStorage.getItem("rp_dev") || ""; } catch { return ""; } }
+async function getPlugin() {
+  try { const r = await call("device", { d: dev() }); localStorage.setItem("rp_dev", r.d); location.href = "/api/plugin.zip?t=" + token + "&d=" + r.d; } catch {}
 }
 function setToken(t) { token = t; localStorage.setItem("rp_t", t); history.replaceState(null, "", location.pathname + "#t=" + t); load(); }
 
@@ -125,13 +129,16 @@ function render() {
       \${s.quotes.map((q) => \`<div class="q \${q.mine && q.id === s.me.fav_quote ? "fav" : ""}">“\${esc(q.text)}” <span class="muted">\${esc(q.page || "")} · \${q.mine ? "bạn" : esc(s.partner?.name)}</span>
         \${q.mine ? (q.id === s.me.fav_quote ? ' <span class="ok">★ yêu thích</span>' : \` <a href="#" onclick="act('quote/fav',{id:\${q.id}});return false">chọn làm yêu thích</a>\`) : ""}</div>\`).join("")}</div>\`);
   }
-  out.push(\`<div class="card"><h2>Cài lên máy đọc XTeink</h2>
-    <ol><li><a href="/api/plugin.zip?t=\${token}">Tải plugin của bạn</a> (đã gắn sẵn tài khoản của bạn, không chia sẻ file này).</li>
+  const linked = s.devices > 0;
+  out.push(\`<div class="card"><h2>Máy đọc XTeink</h2>
+    \${linked ? \`<p class="ok">Máy đọc của bạn đã nối với phòng này ✓</p><p class="muted">Plugin chỉ cài một lần. Khi tạo hoặc tham gia phòng mới trên trình duyệt này, máy tự chuyển sang phòng mới. <a href="#" onclick="getPlugin();return false">Tải lại plugin</a></p>\`
+    : \`<ol><li><button onclick="getPlugin()">Tải plugin cho máy đọc</button></li>
     <li>Giải nén, chép thư mục <b>dualpage</b> vào thư mục <b>plugins</b> ở gốc thẻ SD.</li>
     <li>Settings → Connectivity → Plugins: Enabled. Settings → Sleep Screen: Custom.</li>
     <li>Kết nối Wi-Fi một lần, rồi khởi động lại máy.</li></ol>
+    <p class="muted">Chỉ cài một lần cho mỗi máy. Sau này đổi phòng không cần chép lại.</p>\`}
     <p class="muted">Màn hình chờ trên máy sẽ trông như thế này:</p><img class="prev" src="/d/\${token}/sleep.bmp?v=\${s.now}" alt="Xem trước màn hình chờ"></div>\`);
-  out.push(\`<p class="muted">Cập nhật lúc \${s.updated_label} · <a href="#" onclick="load();return false">Làm mới</a> · <a href="#" onclick="if(confirm('Rời khỏi thiết bị này? Bạn cần link có #t= để vào lại.')){localStorage.removeItem('rp_t');location.href='/'};return false">Đăng xuất</a><br>Link riêng của bạn (mở trên máy khác): <input readonly value="\${location.origin}/#t=\${token}" onclick="this.select()"></p>\`);
+  out.push(\`<p class="muted">Cập nhật lúc \${s.updated_label} · <a href="#" onclick="load();return false">Làm mới</a> · <a href="#" onclick="if(confirm('Rời phòng này để tạo hoặc tham gia phòng khác? Dữ liệu phòng vẫn còn, vào lại bằng link có #t=.')){localStorage.removeItem('rp_t');location.href='/'};return false">Đổi phòng</a><br>Link riêng của bạn (mở trên máy khác): <input readonly value="\${location.origin}/#t=\${token}" onclick="this.select()"></p>\`);
   $("#app").innerHTML = out.join("");
 }
 load();
