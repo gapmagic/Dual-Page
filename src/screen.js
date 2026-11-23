@@ -17,6 +17,12 @@ export function renderScreen(s) {
   c.rect(0, 0, W, 64);
   c.center(16, "DUAL PAGE", "bold", 0);
   let y = 84;
+  if (s.book && s.phase !== "recap") {
+    // Shared book title under the header band.
+    c.center(74, trim(c, `“${s.book.title}”`, W - 2 * M), "body");
+    c.rect(M, 112, W - 2 * M, 1);
+    y = 118;
+  }
 
   if (s.phase === "waiting") {
     c.center(200, "Đang chờ bạn đọc", "bold");
@@ -39,8 +45,8 @@ export function renderScreen(s) {
   // big streak number
   const n = String(s.streak);
   const bw = c.textWidth(n, "big");
-  c.text(Math.round((W - bw) / 2), y - 10, n, "big");
-  y += 160;
+  c.text(Math.round((W - bw) / 2), y - 16, n, "big");
+  y += s.book ? 146 : 160;
   c.center(y, "ngày chuỗi đọc chung", "bold");
   y += s.me.nudged ? 44 : 50;
 
@@ -63,10 +69,10 @@ export function renderScreen(s) {
     c.text(M, y, label, "body");
     const pt = `${p.progress}%`;
     c.text(W - M - c.textWidth(pt, "bold"), y - 2, pt, "bold");
-    c.bar(M, y + 36, W - 2 * M, 28, p.progress / 100);
-    y += 82;
+    c.bar(M, y + 34, W - 2 * M, 24, p.progress / 100);
+    y += s.me.nudged ? 70 : 82;
   }
-  if (s.same_book && !s.me.nudged) {
+  if (s.same_book && !s.me.nudged && !s.book) {
     c.center(y - 6, "Hai bạn đang đọc cùng một cuốn", "body");
     y += 30;
   }
@@ -78,8 +84,8 @@ export function renderScreen(s) {
   const sp = s.sprint;
   c.center(y, `Sprint: ngày ${sp.day}/${sp.total_days} · còn ${sp.days_left} ngày`, "body");
   y += 38;
-  if (sp.extension && !sp.extension.by_me) {
-    c.wrap(M, y, `${s.partner.name} đề nghị +${sp.extension.days} ngày (vào Plugins để đồng ý)`, W - 2 * M, "body", Math.max(1, Math.floor((745 - y) / 34)));
+  if (sp.extension && !sp.extension.by_me && y < 735) {
+    c.center(y, trim(c, `${s.partner.name} đề nghị gia hạn +${sp.extension.days} ngày`, W - 2 * M), "body");
   } else if (s.me.target_pct && y < 720) c.center(y, `Mục tiêu mỗi ngày: ${fmt(s.me.target_pct)}% sách`, "body");
   footer(c, s);
   return c.toBMP();
@@ -89,7 +95,11 @@ function renderRecap(c, s) {
   const r = s.sprint.recap;
   let y = 96;
   c.center(y, "TỔNG KẾT SPRINT", "bold");
-  y += 50;
+  y += 40;
+  if (s.book) {
+    c.center(y, trim(c, `“${s.book.title}”`, W - 2 * M), "body");
+    y += 40;
+  }
   const n = String(r.shared_days);
   c.text(Math.round((W - c.textWidth(n, "big")) / 2), y - 10, n, "big");
   y += 160;

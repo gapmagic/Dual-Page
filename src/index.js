@@ -1,4 +1,4 @@
-import { computeState, ingest, firstSeen, loadMember, inviteCode, randomHex, now, pct, FULL } from "./logic.js";
+import { computeState, ingest, firstSeen, loadMember, inviteCode, randomHex, now, pct, FULL, partialMd5 } from "./logic.js";
 import { renderScreen, renderNoRoom } from "./screen.js";
 import { makeZip } from "./zip.js";
 import { pluginFiles } from "./plugin.js";
@@ -12,6 +12,12 @@ const bad = (msg, status = 400) => json({ error: msg }, status);
 
 function cleanName(s) {
   return String(s || "").replace(/[\u0000-\u001f]/g, "").trim().slice(0, 24);
+}
+function cleanTitle(s) {
+  return String(s || "").replace(/[\u0000-\u001f]/g, "").trim().slice(0, 120);
+}
+function fileSafe(s) {
+  return String(s || "book").normalize("NFC").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "").trim().slice(0, 80) || "book";
 }
 function cleanTz(tz) {
   try {
@@ -62,7 +68,7 @@ export default {
 
 async function api(req, env, url, route) {
   const db = env.DB;
-  const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
+  const body = req.method === "POST" && route !== "book/upload" ? await req.json().catch(() => ({})) : {};
   const token = body.t || url.searchParams.get("t");
 
   if (route === "rooms" && req.method === "POST") {
@@ -70,6 +76,8 @@ async function api(req, env, url, route) {
     if (!name) return bad("Cần nhập tên");
     let days = Math.round(Number(body.sprint_days));
     if (!(days >= 1 && days <= 365)) return bad("Số ngày sprint phải từ 1 đến 365");
+    const bookTitle = cleanTitle(body.book_title);
+    if (!bookTitle) return bad("Cần nhập tên sách chung");
     const roomId = randomHex(8);
     let code;
     for (let i = 0; i < 5; i++) {
@@ -79,7 +87,7 @@ async function api(req, env, url, route) {
     const t = now();
     const memberToken = randomHex(16);
     await db.batch([
-      db.prepare("INSERT INTO rooms (id, code, sprint_days, created_at) VALUES (?, ?, ?, ?)").bind(roomId, code, days, t),
+      db.prepare("INSERT INTO rooms (id, code, sprint_days, created_at, book_title) VALUES (?, ?, ?, ?, ?)").bind(roomId, code, days, t, bookTitle),
       db
         .prepare("INSERT INTO members (id, room_id, token, name, tz, role, created_at) VALUES (?, ?, ?, ?, ?, 'host', ?)")
         .bind(randomHex(8), roomId, memberToken, name, cleanTz(body.tz), t),
@@ -183,6 +191,41 @@ async function api(req, env, url, route) {
 
     case "extend":
       return json(await extend(db, me, room, body.action, Number(body.days)));
+
+    case "book/title": {
+      if (room.start_ts) return bad("Sprint đã bắt đầu, không đổi sách chung được nữa");
+      const title = cleanTitle(body.title);
+      if (!title) return bad("Cần nhập tên sách");
+      await db.prepare("UPDATE rooms SET book_title = ? WHERE id = ?").bind(title, room.id).run();
+      return json(await computeState(db, me));
+    }
+
+    case "book/upload": {
+      if (req.method !== "POST") return bad("POST only", 405);
+      const buf = new Uint8Array(await req.arrayBuffer());
+      if (buf.length < 100) return bad("File trống");
+      if (buf.length > 24 * 1024 * 1024) return bad("File lớn hơn 24MB");
+      let name = decodeURIComponent(req.headers.get("x-filename") || "book.epub");
+      if (!/\.(epub|txt)$/i.test(name)) return bad("Chỉ nhận file .epub hoặc .txt");
+      const doc = await partialMd5(buf);
+      await env.BOOKS.put("book:" + room.id, buf, { metadata: { name } });
+      const title = room.book_title || cleanTitle(name.replace(/\.[^.]+$/, ""));
+      await db.prepare("UPDATE rooms SET book_doc = ?, book_file = ?, book_size = ?, book_title = ? WHERE id = ?").bind(doc, name, buf.length, title, room.id).run();
+      return json(await computeState(db, me));
+    }
+
+    case "book/file": {
+      if (!room.book_file) return bad("Phòng chưa có file sách", 404);
+      const data = await env.BOOKS.get("book:" + room.id, "arrayBuffer");
+      if (!data) return bad("Không tìm thấy file", 404);
+      const ext = room.book_file.match(/\.[^.]+$/)?.[0] || ".epub";
+      return new Response(data, {
+        headers: {
+          "content-type": ext === ".txt" ? "text/plain; charset=utf-8" : "application/epub+zip",
+          "content-disposition": `attachment; filename*=UTF-8''${encodeURIComponent(fileSafe(room.book_title) + ext)}`,
+        },
+      });
+    }
 
     case "plugin.zip": {
       const d = url.searchParams.get("d");
@@ -306,9 +349,13 @@ async function device(req, env, url, rest) {
   }
 
   if (action.startsWith("act/")) {
-    const id = decodeURIComponent(action.slice(4)).replace(/\.txt$/, "");
+    const id = decodeURIComponent(action.slice(4)).replace(/\.txt$/, "").replace(/\.dp$/, "");
     const room = await db.prepare("SELECT * FROM rooms WHERE id = ?").bind(me.room_id).first();
     const partner = await db.prepare("SELECT * FROM members WHERE room_id = ? AND id != ?").bind(me.room_id, me.id).first();
+    if (/\.(epub|txt)$/i.test(id) && room.book_file) {
+      const data = await env.BOOKS.get("book:" + room.id, "arrayBuffer");
+      if (data) return new Response(data, { headers: { "content-type": "application/octet-stream" } });
+    }
     let msg = "Dual Page";
     try {
       if (id === "nudge" && partner) {
@@ -342,15 +389,25 @@ async function homeItems(db, me) {
   const s = await computeState(db, me);
   const items = [];
   const info = (title, author = "") => items.push({ id: "info", title, author });
-  const act = (id, title, author = "") => items.push({ id, title, author });
+  const act = (id, title, author = "") => items.push({ id: id + ".dp", title, author });
+  const bookRows = () => {
+    if (!s.book) return;
+    info(`Sách chung: ${s.book.title}`, s.me.bound ? `Bạn đang đọc: ${s.me.book}` : "Mở cuốn này trên máy để bắt đầu tính tiến độ");
+    if (s.book.file) {
+      const ext = s.book.file.match(/\.[^.]+$/)?.[0] || ".epub";
+      items.push({ id: fileSafe(s.book.title) + ext, title: "Tải sách chung về máy", author: "Lưu vào thư mục DualPage" });
+    }
+  };
   const st = (p) =>
-    !p.bound ? "chưa chọn sách" : p.finished ? "đã đọc xong ✓" : p.done_today ? `xong hôm nay ✓ +${p.today_pct}%` : p.read_today ? `đã đọc ${Math.round(p.today_pct)}% / mục tiêu ${Math.round(p.target_pct)}%` : "chưa đọc hôm nay";
+    !p.bound ? "chưa mở sách chung" : p.finished ? "đã đọc xong ✓" : p.done_today ? `xong hôm nay ✓ +${p.today_pct}%` : p.read_today ? `đã đọc ${Math.round(p.today_pct)}% / mục tiêu ${Math.round(p.target_pct)}%` : "chưa đọc hôm nay";
 
   if (s.phase === "waiting") {
     info(`Mã mời: ${s.code}`, "Gửi mã này cho bạn đọc để ghép đôi");
+    bookRows();
     return items;
   }
   if (s.phase === "pending") {
+    bookRows();
     if (me.role === "guest") act("accept", `Nhận sprint ${s.sprint_days} ngày`, "Bấm để bắt đầu cùng nhau");
     else info(`Chờ ${s.partner.name} nhận sprint ${s.sprint_days} ngày`);
     return items;
@@ -363,6 +420,7 @@ async function homeItems(db, me) {
     return items;
   }
   info(`Chuỗi đọc chung: ${s.streak} ngày`, `Sprint ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`);
+  bookRows();
   info(`Bạn: ${st(s.me)}`, `Tiến độ ${s.me.progress}% · mục tiêu ${s.me.target_pct ? Math.round(s.me.target_pct) : "?"}%/ngày`);
   info(`${s.partner.name}: ${st(s.partner)}`, `Tiến độ ${s.partner.progress}%`);
   if (!s.partner.done_today) act("nudge", `Nhắc ${s.partner.name} đọc`, "Lời nhắc hiện khi bạn ấy mở máy");

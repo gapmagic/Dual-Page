@@ -11,6 +11,19 @@ if [ -z "$ID" ]; then
 fi
 sed -i.bak "s/^database_id = .*/database_id = \"$ID\"/" wrangler.toml && rm -f wrangler.toml.bak
 npx wrangler d1 execute readpal --remote --file schema.sql -y
+# Column additions: each runs alone; "duplicate column" means it was applied before.
+while IFS= read -r stmt; do
+  [ -z "$stmt" ] && continue
+  out=$(npx wrangler d1 execute readpal --remote --command "$stmt" -y 2>&1) || echo "$out" | grep -q "duplicate column" || { echo "$out"; exit 1; }
+done < migrations.sql
+
+# KV namespace for uploaded shared books.
+KV=$(npx wrangler kv namespace list | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s).find(x=>x.title==="dualpage-books");console.log(r?r.id:"")})')
+if [ -z "$KV" ]; then
+  npx wrangler kv namespace create dualpage-books >/dev/null
+  KV=$(npx wrangler kv namespace list | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).find(x=>x.title==="dualpage-books").id))')
+fi
+sed -i.bak "s/^id = .*/id = \"$KV\"/" wrangler.toml && rm -f wrangler.toml.bak
 # A new account has no workers.dev subdomain yet: register one once.
 API=https://api.cloudflare.com/client/v4
 AUTH="Authorization: Bearer $CLOUDFLARE_API_TOKEN"

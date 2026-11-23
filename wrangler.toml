@@ -6,3 +6,7 @@ compatibility_date = "2026-11-01"
 binding = "DB"
 database_name = "readpal"
 database_id = "REPLACE_WITH_D1_ID"
+
+[[kv_namespaces]]
+binding = "BOOKS"
+id = "REPLACE_WITH_KV_ID"

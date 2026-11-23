@@ -14,9 +14,9 @@ export function pluginFiles(origin, token) {
       search: { url: `${D}/search?q={query}` },
     },
     download: {
-      url: `${D}/act/{id_enc}.txt`,
-      dest_dir: "/.dualpage",
-      filename: "{id}.txt",
+      url: `${D}/act/{id_enc}`,
+      dest_dir: "/DualPage",
+      filename: "{id}",
     },
     events: {
       "reader.session": {
@@ -62,7 +62,8 @@ Cài đặt một lần cho máy này (đổi phòng, đổi bạn đọc sau n�
 
 Cách dùng:
 - Cứ đọc như bình thường. Khi thoát sách hoặc cho máy ngủ, tiến độ tự gửi lên và màn hình chờ cập nhật chuỗi đọc, trạng thái bạn đọc.
-- Cuốn sách đầu tiên bạn mở sau khi cài là sách của sprint.
+- Chỉ sách chung của phòng được tính vào tiến độ. Đọc sách riêng thoải mái, không ảnh hưởng gì.
+- Nếu phòng có file sách chung: Home → Plugins → Dual Page → "Tải sách chung về máy" (lưu vào thư mục DualPage).
 - Home → Plugins → Dual Page: xem trạng thái (mở lại để làm mới), nhắc bạn đọc, gia hạn sprint.
 - Lưu trích dẫn: trong Dual Page bấm Tìm kiếm, gõ 1-2 câu rồi xác nhận.
 `;

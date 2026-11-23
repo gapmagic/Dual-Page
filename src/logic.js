@@ -170,6 +170,7 @@ export async function computeState(db, me) {
     phase,
     code: room.code,
     sprint_days: room.sprint_days,
+    book: room.book_title || room.book_file ? { title: room.book_title || room.book_file, file: room.book_file || null, size: room.book_size || null } : null,
     streak,
     shared_days: sharedDays,
     sprint,
@@ -188,15 +189,16 @@ export async function ingest(db, m, bp, ts, opts = {}) {
   const room = await db.prepare("SELECT * FROM rooms WHERE id = ?").bind(m.room_id).first();
   const path = opts.path || null;
 
-  if (m.book_path && path && path !== m.book_path && !(opts.doc && opts.doc === m.book_doc)) {
-    return { ignored: "other_book" };
-  }
+  if (!countsForRoom(room, m, path, opts.doc)) return { ignored: "other_book" };
   const upd = {};
   if (!m.book_path) {
     upd.book_path = path || "manual";
     if (opts.doc) upd.book_doc = opts.doc;
     upd.baseline_bp = opts.startBp ?? bp;
-  } else if (opts.doc && !m.book_doc) upd.book_doc = opts.doc;
+  } else {
+    if (path && path !== m.book_path) upd.book_path = path; // same book, another file/location
+    if (opts.doc && opts.doc !== m.book_doc) upd.book_doc = opts.doc;
+  }
 
   const baseline = upd.baseline_bp ?? m.baseline_bp ?? 0;
   if (!room.start_ts) {
@@ -241,4 +243,60 @@ export async function firstSeen(db, id) {
   if (!id || id.startsWith("{")) return true;
   const r = await db.prepare("INSERT OR IGNORE INTO seen_events (id, ts) VALUES (?, ?)").bind(id, now()).run();
   return r.meta.changes > 0;
+}
+
+export function normTitle(x) {
+  return String(x || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+// Loose match of a book file path against the shared book's title.
+export function titleMatches(path, title) {
+  const t = normTitle(title);
+  if (!path || !t) return false;
+  const f = normTitle(String(path).split("/").pop().replace(/\.[a-z0-9]+$/i, ""));
+  if (!f) return false;
+  if (f.includes(t) || (f.length >= 4 && t.includes(f))) return true;
+  const words = t.split(" ").filter((w) => w.length >= 2);
+  if (!words.length) return false;
+  const fw = new Set(f.split(" "));
+  const hit = words.filter((w) => fw.has(w)).length;
+  return hit >= Math.max(1, Math.ceil(words.length * 0.7));
+}
+
+// Only the room's shared book counts. Rooms made before shared books existed
+// fall back to "the first book this person opened".
+export function countsForRoom(room, m, path, doc) {
+  if (!path && !doc) return true; // manual entry on the web
+  if (!room.book_title && !room.book_doc) {
+    return !m.book_path || path === m.book_path || (doc && doc === m.book_doc);
+  }
+  if (room.book_doc && doc && doc === room.book_doc) return true;
+  if (m.book_path && path && path === m.book_path) return true;
+  if (m.book_doc && doc && doc === m.book_doc) return true;
+  return titleMatches(path, room.book_title);
+}
+
+// KOReader/CrossPoint binary document id: MD5 over 1KB samples at 0, 1K, 4K, 16K, ...
+export async function partialMd5(bytes) {
+  const parts = [];
+  for (let i = -1; i <= 10; i++) {
+    const off = i < 0 ? 0 : 1024 * 2 ** (2 * i);
+    if (off >= bytes.length) continue;
+    parts.push(bytes.subarray(off, Math.min(bytes.length, off + 1024)));
+  }
+  const total = parts.reduce((a, p) => a + p.length, 0);
+  const buf = new Uint8Array(total);
+  let o = 0;
+  for (const p of parts) {
+    buf.set(p, o);
+    o += p.length;
+  }
+  const h = await crypto.subtle.digest("MD5", buf);
+  return [...new Uint8Array(h)].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
