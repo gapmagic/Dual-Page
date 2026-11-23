@@ -153,13 +153,6 @@ async function api(req, env, url, route) {
       return json(await computeState(db, me));
     }
 
-    case "progress": {
-      const val = Number(body.percent);
-      if (!(val >= 0 && val <= 100)) return bad("Phần trăm phải từ 0 đến 100");
-      await ingest(db, me, val * 100, now(), { seconds: Math.max(0, Math.round(Number(body.minutes || 0) * 60)) });
-      return json(await computeState(db, me));
-    }
-
     case "rebind": {
       await db.prepare("UPDATE members SET book_path = NULL, book_doc = NULL, target_bp = NULL, finished_ts = NULL, bp = 0 WHERE id = ?").bind(me.id).run();
       return json(await computeState(db, await loadMember(db, token)));
