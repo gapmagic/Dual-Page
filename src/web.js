@@ -19,7 +19,7 @@ button.ghost{background:#fff;color:var(--acc)}button:disabled{opacity:.5}
 .banner{background:var(--ink);color:#fff;border-radius:12px;padding:12px 16px;margin:0 0 14px}
 .banner button{background:#fff;color:var(--ink);border-color:#fff}
 .code{font-size:32px;font-weight:700;letter-spacing:.1em;text-align:center;margin:8px 0}
-.q{border-left:3px solid var(--line);padding:4px 10px;margin:8px 0}.q.fav{border-color:var(--acc)}
+.q{border-left:3px solid var(--line);padding:4px 10px;margin:8px 0}.q.fav{border-color:var(--acc)}.big-q{font-size:18px;line-height:1.4}
 .tabs button{margin-top:0}.err{color:#a3341f;min-height:1.2em}
 img.prev{width:100%;max-width:240px;border:1px solid var(--line);display:block;margin:8px auto}
 ol{padding-left:20px}.btitle{font-size:22px;font-weight:700;line-height:1.25;margin:2px 0 6px}.book{border-left:4px solid var(--acc)}a.dl{font-weight:600;color:var(--acc)}details{margin-top:8px}summary{cursor:pointer;color:var(--acc)}li{margin:4px 0}
@@ -107,6 +107,20 @@ function bookCard(s) {
     </details>\` : b && !b.file ? \`<label>Tải file sách lên để bạn đọc dùng cùng bản (.epub)</label><input type="file" accept=".epub,.txt" onchange="this.files[0]&&upload(this.files[0])">\` : ""}
   </div>\`;
 }
+function highlightCard(s) {
+  const p = s.partner, m = s.me;
+  const mine = m.highlights.map((h) => \`<div class="q \${m.shared && m.shared.id === h.id ? "fav" : ""}">“\${esc(h.text)}”
+    \${m.shared && m.shared.id === h.id ? \`<span class="ok"> ✓ đang hiện bên \${esc(p.name)}</span>\` : \` <a href="#" onclick="act('share',{id:'\${esc(h.id)}'});return false">chia sẻ câu này</a>\`}</div>\`).join("");
+  return \`<div class="card"><h2>Câu hay chia sẻ cho nhau</h2>
+    \${p.shared ? \`<p><b>\${esc(p.name)} chia sẻ:</b></p><div class="q fav big-q">“\${esc(p.shared.text)}”</div>\` : \`<p class="muted">\${esc(p.name)} chưa chia sẻ câu nào.</p>\`}
+    <p class="muted">Highlight câu hay trong sách chung trên máy đọc. Khi máy ngủ, câu mới nhất của bạn tự hiện trên màn hình chờ của \${esc(p.name)} (tối đa 140 ký tự). Muốn chia sẻ câu khác thì chọn bên dưới hoặc trong menu Plugins → Dual Page.</p>
+    \${mine ? \`<p><b>Câu bạn đã highlight</b></p>\${mine}\` : \`<details><summary>Chưa thấy câu highlight nào? Bật chia sẻ highlight trên máy</summary><ol>
+      <li>Trên máy: Settings → File Transfer, kết nối cùng Wi-Fi với điện thoại.</li>
+      <li>Mở địa chỉ máy hiện trên màn hình (ví dụ crosspoint.local) bằng trình duyệt điện thoại, vào trang Plugins.</li>
+      <li>Ở thẻ "Dual Page: chia sẻ câu highlight", bấm "Bật chia sẻ highlight".</li></ol>
+      <p class="muted">Cần plugin bản mới: bấm "Tải lại plugin" ở mục Máy đọc rồi chép đè vào thẻ SD.</p></details>\`}
+  </div>\`;
+}
 function setToken(t) { token = t; localStorage.setItem("rp_t", t); history.replaceState(null, "", location.pathname + "#t=" + t); load(); }
 
 function st(p) {
@@ -153,6 +167,7 @@ function render() {
       : \`<p class="muted">Cả hai phải đồng ý.</p><button class="ghost" onclick="act('extend',{action:'propose',days:3})">Đề nghị +3 ngày</button><button class="ghost" onclick="act('extend',{action:'propose',days:7})">Đề nghị +7 ngày</button>\`}</div>\`);
   }
   if (s.phase !== "active") out.push(bookCard(s));
+  if (s.phase === "active" || s.phase === "recap") out.push(highlightCard(s));
   const linked = s.devices > 0;
   out.push(\`<div class="card"><h2>Máy đọc XTeink</h2>
     \${linked ? \`<p class="ok">Máy đọc của bạn đã nối với phòng này ✓</p><p class="muted">Plugin chỉ cài một lần. Khi tạo hoặc tham gia phòng mới trên trình duyệt này, máy tự chuyển sang phòng mới. <a href="#" onclick="getPlugin();return false">Tải lại plugin</a></p>\`

@@ -4,7 +4,7 @@ import { Canvas, W } from "./bmp.js";
 const M = 28; // side margin
 
 function statusLine(p) {
-  if (!p.bound) return "chưa chọn sách";
+  if (!p.bound) return "chưa mở sách chung";
   if (p.finished) return "đã đọc xong sách ✓";
   if (p.done_today) return `xong hôm nay ✓ (+${p.today_pct}%)`;
   if (p.read_today) return `đã đọc ${fmt(p.today_pct)}% / ${fmt(p.target_pct)}%`;
@@ -42,51 +42,67 @@ export function renderScreen(s) {
 
   if (s.phase === "recap") return renderRecap(c, s);
 
-  // big streak number
+  const quote = s.partner.shared;
+  const compact = !!(quote || s.me.nudged);
+
+  // streak: big number with its label beside it (compact) or below it
   const n = String(s.streak);
   const bw = c.textWidth(n, "big");
-  c.text(Math.round((W - bw) / 2), y - 16, n, "big");
-  y += s.book ? 146 : 160;
-  c.center(y, "ngày chuỗi đọc chung", "bold");
-  y += s.me.nudged ? 44 : 50;
+  if (compact) {
+    const lw = c.textWidth("chuỗi đọc chung", "bold");
+    const x0 = Math.round((W - bw - 18 - lw) / 2);
+    c.text(x0, y - 20, n, "big");
+    c.text(x0 + bw + 18, y + 34, "ngày", "bold");
+    c.text(x0 + bw + 18, y + 70, "chuỗi đọc chung", "bold");
+    y += 138;
+  } else {
+    c.text(Math.round((W - bw) / 2), y - 16, n, "big");
+    y += s.book ? 146 : 160;
+    c.center(y, "ngày chuỗi đọc chung", "bold");
+    y += 50;
+  }
 
   if (s.me.nudged) {
-    c.rect(M - 8, y - 6, W - 2 * (M - 8), 46);
-    c.center(y + 2, `${s.partner.name} nhắc: Đọc thôi nào!`, "bold", 0);
-    y += 56;
+    c.rect(M - 8, y - 6, W - 2 * (M - 8), 44);
+    c.center(y + 1, `${s.partner.name} nhắc: Đọc thôi nào!`, "bold", 0);
+    y += 52;
   }
 
-  // today box
-  c.frame(M - 8, y, W - 2 * (M - 8), 132, 2);
-  c.text(M + 4, y + 10, "Hôm nay", "bold");
-  c.text(M + 4, y + 50, `Bạn: ${statusLine(s.me)}`, "body");
-  c.text(M + 4, y + 88, `${trim(c, s.partner.name, 140)}: ${statusLine(s.partner)}`, "body");
-  y += 152;
-
-  // progress bars
+  // per person: name + today's status, percent, progress bar
   for (const p of [s.me, s.partner]) {
-    const label = p === s.me ? "Bạn" : trim(c, p.name, 180);
-    c.text(M, y, label, "body");
+    const label = p === s.me ? "Bạn" : trim(c, p.name, 140);
     const pt = `${p.progress}%`;
-    c.text(W - M - c.textWidth(pt, "bold"), y - 2, pt, "bold");
-    c.bar(M, y + 34, W - 2 * M, 24, p.progress / 100);
-    y += s.me.nudged ? 70 : 82;
-  }
-  if (s.same_book && !s.me.nudged && !s.book) {
-    c.center(y - 6, "Hai bạn đang đọc cùng một cuốn", "body");
-    y += 30;
+    const ptw = c.textWidth(pt, "bold");
+    c.text(M, y, trim(c, `${label}: ${statusLine(p)}`, W - 2 * M - ptw - 12), "body");
+    c.text(W - M - ptw, y - 2, pt, "bold");
+    c.bar(M, y + 34, W - 2 * M, 22, p.progress / 100);
+    y += compact ? 68 : 80;
   }
 
-  // sprint
-  y += 8;
-  c.rect(M, y, W - 2 * M, 2);
-  y += 14;
+  // sprint line
+  y += 2;
+  c.rect(M, y, W - 2 * M, 1);
+  y += 10;
   const sp = s.sprint;
   c.center(y, `Sprint: ngày ${sp.day}/${sp.total_days} · còn ${sp.days_left} ngày`, "body");
-  y += 38;
-  if (sp.extension && !sp.extension.by_me && y < 735) {
+  y += 36;
+  if (sp.extension && !sp.extension.by_me) {
     c.center(y, trim(c, `${s.partner.name} đề nghị gia hạn +${sp.extension.days} ngày`, W - 2 * M), "body");
-  } else if (s.me.target_pct && y < 720) c.center(y, `Mục tiêu mỗi ngày: ${fmt(s.me.target_pct)}% sách`, "body");
+    y += 36;
+  } else if (!quote && s.me.target_pct) {
+    c.center(y, `Mục tiêu mỗi ngày: ${fmt(s.me.target_pct)}% sách`, "body");
+    y += 36;
+  }
+
+  // the partner's shared highlight
+  if (quote) {
+    y += 6;
+    const boxTop = y;
+    const maxLines = Math.max(1, Math.floor((744 - y - 46) / c.lineHeight("body")));
+    c.text(M + 6, y + 8, trim(c, `${s.partner.name} chia sẻ:`, W - 2 * M - 12), "bold");
+    const end = c.wrap(M + 6, y + 46, `“${quote.text}”`, W - 2 * M - 12, "body", maxLines);
+    c.frame(M - 8, boxTop, W - 2 * (M - 8), end - boxTop + 8, 2);
+  }
   footer(c, s);
   return c.toBMP();
 }

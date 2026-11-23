@@ -58,6 +58,7 @@ export default {
       if (p === "/" || p === "/index.html") return new Response(PAGE, { headers: { "content-type": "text/html; charset=utf-8" } });
       if (p.startsWith("/api/")) return await api(req, env, url, p.slice(5));
       if (p.startsWith("/d/")) return await device(req, env, url, p.slice(3));
+      if (p.startsWith("/kosync/")) return await kosync(req, env, url, p.slice(8));
       return text("Not found", 404);
     } catch (e) {
       console.error(e && e.stack ? e.stack : e);
@@ -161,6 +162,12 @@ async function api(req, env, url, route) {
     case "nudge": {
       if (!partner) return bad("Chưa có bạn đọc");
       await db.prepare("UPDATE members SET nudged_ts = ? WHERE id = ?").bind(now(), partner.id).run();
+      return json(await computeState(db, me));
+    }
+
+    case "share": {
+      const r = await db.prepare("UPDATE highlights SET share_ts = ? WHERE member_id = ? AND clip_id = ? AND deleted = 0").bind(now(), me.id, String(body.id || "")).run();
+      if (!r.meta.changes) return bad("Không tìm thấy câu này");
       return json(await computeState(db, me));
     }
 
@@ -331,6 +338,9 @@ async function device(req, env, url, rest) {
       if (id === "nudge" && partner) {
         await db.prepare("UPDATE members SET nudged_ts = ? WHERE id = ?").bind(now(), partner.id).run();
         msg = `Đã nhắc ${partner.name}.`;
+      } else if (id.startsWith("share-")) {
+        const r = await db.prepare("UPDATE highlights SET share_ts = ? WHERE member_id = ? AND clip_id = ? AND deleted = 0").bind(now(), me.id, id.slice(6)).run();
+        msg = r.meta.changes ? "Đã chia sẻ câu này." : "Không tìm thấy câu này.";
       } else if (id === "seen") {
         await db.prepare("UPDATE members SET nudged_ts = NULL WHERE id = ?").bind(me.id).run();
         msg = "Đã xem lời nhắc.";
@@ -394,6 +404,11 @@ async function homeItems(db, me) {
   info(`Bạn: ${st(s.me)}`, `Tiến độ ${s.me.progress}% · mục tiêu ${s.me.target_pct ? Math.round(s.me.target_pct) : "?"}%/ngày`);
   info(`${s.partner.name}: ${st(s.partner)}`, `Tiến độ ${s.partner.progress}%`);
   if (!s.partner.done_today) act("nudge", `Nhắc ${s.partner.name} đọc`, "Lời nhắc hiện khi bạn ấy mở máy");
+  if (s.partner.shared) info(`${s.partner.name} chia sẻ:`, `“${s.partner.shared.text}”`);
+  if (s.me.shared) info(`Câu bạn đang chia sẻ:`, `“${s.me.shared.text}”`);
+  const others = s.me.highlights.filter((h) => !s.me.shared || h.id !== s.me.shared.id).slice(0, 5);
+  for (const h of others) act("share-" + h.id, `Chia sẻ: “${h.text.slice(0, 70)}${h.text.length > 70 ? "…" : ""}”`, h.chapter || "Bấm để hiện câu này bên bạn đọc");
+  if (!s.me.highlights.length) info("Chưa có câu highlight nào", "Highlight trong sách chung, cho máy ngủ là câu tự chia sẻ");
   const ext = s.sprint.extension;
   if (ext && !ext.by_me) {
     act("ext_yes", `Đồng ý gia hạn +${ext.days} ngày`, `${s.partner.name} đề nghị`);
@@ -405,4 +420,59 @@ async function homeItems(db, me) {
   }
   info(`Cập nhật lúc ${s.updated_label}`, "Mở lại mục này để làm mới");
   return items;
+}
+
+// ---------- KOSync-compatible endpoints: highlights (clippings) arrive here ----------
+// The reader's KOReader Sync settings point at <origin>/kosync with the device
+// token as username. Only clippings are kept; progress comes from plugin events.
+async function kosync(req, env, url, route) {
+  const db = env.DB;
+  const user = req.headers.get("x-auth-user") || "";
+  const { known, me } = await memberForDevice(db, user);
+  const kj = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { "content-type": "application/json" } });
+  if (route === "users/create") return kj({ message: "Use dualpage.online" }, 402);
+  if (!known) return kj({ message: "Unauthorized" }, 401);
+  if (route === "users/auth") return kj({ authorized: "OK" });
+  if (route === "syncs/progress" && req.method === "PUT") {
+    const b = await req.json().catch(() => ({}));
+    return kj({ document: b.document || "", timestamp: now() });
+  }
+  if (route.startsWith("syncs/progress/")) return kj({}, 404);
+
+  const m = route.match(/^api\/v1\/clippings\/([0-9a-f]{32})$/);
+  if (m) {
+    const doc = m[1];
+    if (req.method === "GET") {
+      const cursor = Number(url.searchParams.get("cursor") || 0) || 0;
+      return kj({ sync_version: 2, cursor, more: false, items: [] });
+    }
+    if (req.method === "PUT") {
+      const b = await req.json().catch(() => ({}));
+      const items = Array.isArray(b.items) ? b.items.slice(0, 20) : [];
+      if (me) {
+        for (const it of items) {
+          const id = String(it.id || "").slice(0, 64);
+          if (!id) continue;
+          if (Number(it.deleted) === 1) {
+            await db.prepare("UPDATE highlights SET deleted = 1 WHERE member_id = ? AND clip_id = ?").bind(me.id, id).run();
+            continue;
+          }
+          const text = String(it.text || "").replace(/\s+/g, " ").trim().slice(0, 2000);
+          if (!text) continue;
+          const t = now();
+          const created = Number(it.created_at) > 1600000000 ? Number(it.created_at) : t;
+          await db
+            .prepare(
+              `INSERT INTO highlights (member_id, clip_id, doc, text, chapter, created_at, share_ts) VALUES (?, ?, ?, ?, ?, ?, ?)
+               ON CONFLICT(member_id, clip_id) DO UPDATE SET text = excluded.text, deleted = 0`
+            )
+            .bind(me.id, id, doc, text, String(it.chapter || "").slice(0, 120), created, t)
+            .run();
+        }
+      }
+      return kj({ accepted: 1 });
+    }
+  }
+  if (route.startsWith("api/v1/")) return kj({}, 404);
+  return kj({ message: "Not found" }, 404);
 }

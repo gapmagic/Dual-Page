@@ -92,6 +92,16 @@ export async function computeState(db, me) {
     .bind(...ids)
     .all();
 
+  // Highlights of the shared book (clippings synced from the readers).
+  const { results: hl } = await db
+    .prepare(`SELECT * FROM highlights WHERE deleted = 0 AND member_id IN (${ids.map(() => "?").join(",")}) ORDER BY share_ts DESC, created_at DESC LIMIT 60`)
+    .bind(...ids)
+    .all();
+  const docsFor = (m) => new Set([room.book_doc, m.book_doc].filter(Boolean));
+  const hlFor = (m) => {
+    const docs = docsFor(m);
+    return hl.filter((h) => h.member_id === m.id && docs.has(h.doc));
+  };
   const today = localDay(t, me.tz);
   const view = (m) => {
     const d = memberDays(m, daily.filter((r) => r.member_id === m.id), room);
@@ -116,6 +126,16 @@ export async function computeState(db, me) {
         minutes: Math.round(d.seconds / 60),
         nudged: !!m.nudged_ts,
         fav_quote: m.fav_quote,
+        shared: (() => {
+          const h = hlFor(m)[0];
+          return h ? { id: h.clip_id, text: shortQuote(h.text), at: h.share_ts } : null;
+        })(),
+        highlights: hlFor(m)
+          .slice()
+          .sort((a, b) => b.created_at - a.created_at)
+          .slice(0, 8)
+          .map((h) => ({ id: h.clip_id, text: shortQuote(h.text), chapter: h.chapter })),
+        highlight_count: hlFor(m).length,
         last_updated: m.last_updated,
       },
     };
@@ -155,7 +175,10 @@ export async function computeState(db, me) {
     if (phase === "recap") {
       const lastFinish = bothFinished ? Math.max(me.finished_ts, partner.finished_ts) : null;
       const early = lastFinish ? Math.max(0, dayDiff(localDay(lastFinish, me.tz), endDay)) : 0;
-      const qFor = (m) => quotes.find((q) => q.id === m.fav_quote) || quotes.find((q) => q.member_id === m.id) || null;
+      const qFor = (m) => {
+        const h = hlFor(m)[0];
+        return h ? { text: shortQuote(h.text), page: h.chapter || "" } : null;
+      };
       sprint.recap = {
         shared_days: sharedDays,
         early_days: early,
@@ -299,4 +322,14 @@ export async function partialMd5(bytes) {
   }
   const h = await crypto.subtle.digest("MD5", buf);
   return [...new Uint8Array(h)].map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+
+export const QUOTE_MAX = 140;
+// Shared highlights are capped so they fit the partner's sleep screen.
+export function shortQuote(text, max = QUOTE_MAX) {
+  const t = String(text || "").replace(/\s+/g, " ").trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max - 1);
+  const sp = cut.lastIndexOf(" ");
+  return (sp > max * 0.6 ? cut.slice(0, sp) : cut).replace(/[\s,.;:–—-]+$/, "") + "…";
 }

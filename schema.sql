@@ -50,3 +50,15 @@ CREATE TABLE IF NOT EXISTS devices (
   member_id TEXT,              -- current room membership (NULL = not in a room)
   created_at INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS highlights (
+  member_id TEXT NOT NULL,
+  clip_id TEXT NOT NULL,
+  doc TEXT NOT NULL,
+  text TEXT NOT NULL,
+  chapter TEXT,
+  created_at INTEGER NOT NULL,
+  share_ts INTEGER NOT NULL,   -- auto: upload time; raised when picked in the menu
+  deleted INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (member_id, clip_id)
+);
+CREATE INDEX IF NOT EXISTS highlights_member ON highlights(member_id, share_ts);

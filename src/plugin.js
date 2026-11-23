@@ -47,7 +47,8 @@ export function pluginFiles(origin, token) {
   const manifest = {
     title: "Dual Page",
     description: "Giữ chuỗi đọc chung với bạn đọc",
-    version: "0.1.0",
+    version: "0.2.0",
+    mount: "settings",
   };
   const config = { server: origin, token };
   const readme = `Dual Page
@@ -59,13 +60,41 @@ Cài đặt một lần cho máy này (đổi phòng, đổi bạn đọc sau n�
 4. Kết nối Wi-Fi một lần để máy nhớ mạng.
 5. Khởi động lại máy.
 
+Bật chia sẻ câu highlight (một lần):
+1. Trên máy: Settings → File Transfer, kết nối cùng Wi-Fi với điện thoại.
+2. Trên điện thoại mở địa chỉ máy hiện trên màn hình (ví dụ http://crosspoint.local), vào trang Plugins.
+3. Ở thẻ "Dual Page: chia sẻ câu highlight" bấm "Bật chia sẻ highlight".
+
 Cách dùng:
 - Cứ đọc như bình thường. Khi thoát sách hoặc cho máy ngủ, tiến độ tự gửi lên và màn hình chờ cập nhật chuỗi đọc, trạng thái bạn đọc.
 - Chỉ sách chung của phòng được tính vào tiến độ. Đọc sách riêng thoải mái, không ảnh hưởng gì.
 - Nếu phòng có file sách chung: Home → Plugins → Dual Page → "Tải sách chung về máy" (lưu vào thư mục DualPage).
+- Highlight câu hay trong sách chung (giữ Confirm → Clip). Khi máy ngủ, câu mới nhất tự hiện trên màn hình chờ của bạn đọc (tối đa 140 ký tự). Muốn chia sẻ câu khác: Plugins → Dual Page → chọn "Chia sẻ: …".
 - Home → Plugins → Dual Page: xem trạng thái (mở lại để làm mới), nhắc bạn đọc, gia hạn sprint.
 `;
+  // Browser-side card on the reader's web page: turns on highlight sync to Dual Page.
+  const pluginJs = `CrossPoint.registerPlugin(function (el) {
+  var SERVER = ${JSON.stringify(origin + "/kosync")}, USER = ${JSON.stringify(token)};
+  el.innerHTML = '<h3>Dual Page: chia sẻ câu highlight</h3>' +
+    '<p>Bấm nút dưới để máy tự gửi các câu bạn highlight lên Dual Page mỗi lần máy ngủ. ' +
+    'Câu highlight mới nhất trong sách chung sẽ hiện trên màn hình chờ của bạn đọc.</p>' +
+    '<p><small>Lưu ý: thao tác này thay cài đặt KOReader Sync hiện có trên máy.</small></p>' +
+    '<button type="button">Bật chia sẻ highlight</button> <span class="dp-msg"></span>';
+  var msg = el.querySelector('.dp-msg');
+  el.querySelector('button').onclick = function () {
+    msg.textContent = 'Đang cài…';
+    fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ koServerUrl: SERVER, koUsername: USER, koPassword: 'dualpage', koServerType: 1,
+        koMatchMethod: 1, koSyncBehavior: 1, koSyncClippings: 1, koSyncOnSleep: 1 })
+    }).then(function (r) { return r.text().then(function (t) { msg.textContent = r.ok ? 'Đã bật ✓' : 'Lỗi: ' + t; }); })
+      .catch(function (e) { msg.textContent = 'Lỗi: ' + e; });
+  };
+});
+`;
   return [
+    ["dualpage/plugin.js", pluginJs],
     ["dualpage/device.json", JSON.stringify(device, null, 2)],
     ["dualpage/manifest.json", JSON.stringify(manifest, null, 2)],
     ["dualpage/config.json", JSON.stringify(config)],
