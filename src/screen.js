@@ -30,14 +30,14 @@ export function renderScreen(s) {
     c.center(300, s.code, "bold");
     c.wrap(M, 360, "Gửi mã này cho bạn đọc để ghép đôi. Phòng khoá khi đủ 2 người.", W - 2 * M, "body", 3);
     footer(c, s);
-    return c.toBMP();
+    return c;
   }
   if (s.phase === "pending") {
     c.center(220, `${s.partner.name} đã tham gia!`, "bold");
     c.center(270, `Chờ xác nhận sprint ${s.sprint_days} ngày`, "body");
     c.wrap(M, 320, s.me.role === "guest" ? "Mở Plugins → Dual Page hoặc trang web để đồng ý." : "Đang chờ bạn ấy đồng ý.", W - 2 * M, "body", 3);
     footer(c, s);
-    return c.toBMP();
+    return c;
   }
 
   if (s.phase === "recap") return renderRecap(c, s);
@@ -104,7 +104,7 @@ export function renderScreen(s) {
     c.frame(M - 8, boxTop, W - 2 * (M - 8), end - boxTop + 8, 2);
   }
   footer(c, s);
-  return c.toBMP();
+  return c;
 }
 
 function renderRecap(c, s) {
@@ -136,7 +136,7 @@ function renderRecap(c, s) {
     }
   }
   footer(c, s);
-  return c.toBMP();
+  return c;
 }
 
 const fmt = (x) => (x >= 10 || Number.isInteger(x) ? Math.round(x) : x);
@@ -157,5 +157,5 @@ export function renderNoRoom(origin) {
   c.center(16, "DUAL PAGE", "bold", 0);
   c.center(240, "Máy chưa vào phòng nào", "bold");
   c.wrap(M, 300, `Mở ${origin.replace(/^https?:\/\//, "")} trên điện thoại để tạo phòng hoặc tham gia bằng mã mời. Không cần cài lại plugin.`, W - 2 * M, "body", 5);
-  return c.toBMP();
+  return c;
 }

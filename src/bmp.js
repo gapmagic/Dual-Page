@@ -22,6 +22,8 @@ function glyph(font, ch) {
   return decoded[key];
 }
 
+import { crc32 } from "./zip.js";
+
 export class Canvas {
   constructor() {
     this.px = new Uint8Array(W * H); // 1 = black
@@ -88,6 +90,37 @@ export class Canvas {
     this.frame(x, y, w, h, 2);
     const f = Math.max(0, Math.min(1, frac));
     this.rect(x + 4, y + 4, Math.round((w - 8) * f), h - 8);
+  }
+  // 1-bit grayscale PNG, upscaled (nearest neighbour, stays crisp) (KOReader sleep screen).
+  async toPNG(scale = 1) {
+    const w = Math.round(W * scale), h = Math.round(H * scale);
+    const rb = (w + 7) >> 3;
+    const raw = new Uint8Array((rb + 1) * h);
+    for (let y = 0; y < h; y++) {
+      const sy = Math.min(H - 1, (y / scale) | 0);
+      const row = y * (rb + 1) + 1;
+      for (let x = 0; x < w; x++) if (!this.px[sy * W + Math.min(W - 1, (x / scale) | 0)]) raw[row + (x >> 3)] |= 0x80 >> (x & 7);
+    }
+    const z = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream("deflate"))).arrayBuffer());
+    const chunk = (type, data) => {
+      const b = new Uint8Array(12 + data.length);
+      const dv = new DataView(b.buffer);
+      dv.setUint32(0, data.length);
+      for (let i = 0; i < 4; i++) b[4 + i] = type.charCodeAt(i);
+      b.set(data, 8);
+      dv.setUint32(8 + data.length, crc32(b.subarray(4, 8 + data.length)));
+      return b;
+    };
+    const ihdr = new Uint8Array(13);
+    const dv = new DataView(ihdr.buffer);
+    dv.setUint32(0, w);
+    dv.setUint32(4, h);
+    ihdr.set([1, 0, 0, 0, 0], 8);
+    const parts = [new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]), chunk("IHDR", ihdr), chunk("IDAT", z), chunk("IEND", new Uint8Array(0))];
+    const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+    let o = 0;
+    for (const p of parts) (out.set(p, o), (o += p.length));
+    return out;
   }
   toBMP() {
     const rowBytes = ((W + 31) >> 5) << 2;

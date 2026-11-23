@@ -2,6 +2,7 @@ import { computeState, ingest, firstSeen, loadMember, inviteCode, randomHex, now
 import { renderScreen, renderNoRoom } from "./screen.js";
 import { makeZip } from "./zip.js";
 import { pluginFiles } from "./plugin.js";
+import { koPluginFiles } from "./koplugin.js";
 import { PAGE } from "./web.js";
 
 const DAY = 86400;
@@ -213,14 +214,16 @@ async function api(req, env, url, route) {
       });
     }
 
-    case "plugin.zip": {
+    case "plugin.zip":
+    case "koplugin.zip": {
       const d = url.searchParams.get("d");
       const dev = d && (await db.prepare("SELECT * FROM devices WHERE token = ? AND member_id = ?").bind(d, me.id).first());
       if (!dev) return bad("Thiếu mã máy đọc, hãy tải lại từ trang web");
-      const files = pluginFiles(url.origin, d);
-      const zip = makeZip(files);
+      const ko = route === "koplugin.zip";
+      const zip = makeZip(ko ? koPluginFiles(url.origin, d) : pluginFiles(url.origin, d));
+      const name = ko ? "dualpage-koreader.zip" : "dualpage-plugin.zip";
       return new Response(zip, {
-        headers: { "content-type": "application/zip", "content-disposition": 'attachment; filename="dualpage-plugin.zip"' },
+        headers: { "content-type": "application/zip", "content-disposition": `attachment; filename="${name}"` },
       });
     }
   }
@@ -288,7 +291,8 @@ async function device(req, env, url, rest) {
   if (!known) return action.endsWith(".bmp") ? text("unknown device", 404) : text("unknown device", 401);
   if (!me) {
     // Installed reader that is not in a room right now.
-    if (action === "sleep.bmp") return new Response(renderNoRoom(url.origin), { headers: { "content-type": "image/bmp", "cache-control": "no-store" } });
+    if (action === "sleep.bmp") return new Response(renderNoRoom(url.origin).toBMP(), { headers: { "content-type": "image/bmp", "cache-control": "no-store" } });
+    if (action === "sleep.png") return png(renderNoRoom(url.origin), url);
     if (action === "home" || action === "search")
       return json({ items: [{ id: "info", title: "Máy chưa vào phòng nào", author: `Mở ${url.host} để tạo hoặc tham gia phòng` }] });
     return text("ok");
@@ -320,7 +324,22 @@ async function device(req, env, url, rest) {
     const p = Number(v(f.pct));
     if (v(f.book) && p >= 0) await ingest(db, me, Math.max(p, Number(v(f.end)) === 100 ? 100 : 0) * 100, Number(v(f.ts)) || now(), { path: v(f.book) });
     const s = await computeState(db, me);
-    return new Response(renderScreen(s), { headers: { "content-type": "image/bmp", "cache-control": "no-store" } });
+    return new Response(renderScreen(s).toBMP(), { headers: { "content-type": "image/bmp", "cache-control": "no-store" } });
+  }
+
+  if (action === "sleep.png") {
+    const p = Number(url.searchParams.get("pct"));
+    const book = url.searchParams.get("book");
+    if (book && p >= 0) await ingest(db, me, Math.round(p * 100), now(), { path: book, doc: url.searchParams.get("doc") || undefined });
+    return png(renderScreen(await computeState(db, me)), url);
+  }
+
+  // KOReader plugin: {doc, items:[{id, text, chapter, created_at, deleted?, share?}]}
+  if (action === "highlight" && req.method === "POST") {
+    const b = await req.json().catch(() => ({}));
+    const items = Array.isArray(b.items) ? b.items.slice(0, 20) : [];
+    await upsertHighlights(db, me, b.doc, items);
+    return text(items.some((i) => i.share) ? "Đã chia sẻ câu này." : "ok");
   }
 
   if (action === "home") return json({ items: await homeItems(db, me) });
@@ -363,6 +382,13 @@ async function device(req, env, url, rest) {
     return text(msg + "\n");
   }
   return text("Not found", 404);
+}
+
+async function png(canvas, url) {
+  const w = Number(url.searchParams.get("w")) || 480;
+  const h = Number(url.searchParams.get("h")) || 800;
+  const scale = Math.max(1, Math.min(4, Math.min(w / 480, h / 800)));
+  return new Response(await canvas.toPNG(scale), { headers: { "content-type": "image/png", "cache-control": "no-store" } });
 }
 
 async function homeItems(db, me) {
@@ -425,6 +451,29 @@ async function homeItems(db, me) {
 // ---------- KOSync-compatible endpoints: highlights (clippings) arrive here ----------
 // The reader's KOReader Sync settings point at <origin>/kosync with the device
 // token as username. Only clippings are kept; progress comes from plugin events.
+async function upsertHighlights(db, me, doc, items) {
+  for (const it of items) {
+    const id = String(it.id || "").slice(0, 64);
+    if (!id) continue;
+    if (Number(it.deleted) === 1) {
+      await db.prepare("UPDATE highlights SET deleted = 1 WHERE member_id = ? AND clip_id = ?").bind(me.id, id).run();
+      continue;
+    }
+    const text = String(it.text || "").replace(/\s+/g, " ").trim().slice(0, 2000);
+    if (!text) continue;
+    const t = now();
+    const created = Number(it.created_at) > 1600000000 ? Number(it.created_at) : t;
+    // share=1 re-shares an existing highlight (KOReader "Chia sẻ Dual Page" button).
+    await db
+      .prepare(
+        `INSERT INTO highlights (member_id, clip_id, doc, text, chapter, created_at, share_ts) VALUES (?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(member_id, clip_id) DO UPDATE SET text = excluded.text, deleted = 0` + (it.share ? ", share_ts = excluded.share_ts" : "")
+      )
+      .bind(me.id, id, String(doc || "").slice(0, 64), text, String(it.chapter || "").slice(0, 120), created, t)
+      .run();
+  }
+}
+
 async function kosync(req, env, url, route) {
   const db = env.DB;
   const user = req.headers.get("x-auth-user") || "";
@@ -450,25 +499,7 @@ async function kosync(req, env, url, route) {
       const b = await req.json().catch(() => ({}));
       const items = Array.isArray(b.items) ? b.items.slice(0, 20) : [];
       if (me) {
-        for (const it of items) {
-          const id = String(it.id || "").slice(0, 64);
-          if (!id) continue;
-          if (Number(it.deleted) === 1) {
-            await db.prepare("UPDATE highlights SET deleted = 1 WHERE member_id = ? AND clip_id = ?").bind(me.id, id).run();
-            continue;
-          }
-          const text = String(it.text || "").replace(/\s+/g, " ").trim().slice(0, 2000);
-          if (!text) continue;
-          const t = now();
-          const created = Number(it.created_at) > 1600000000 ? Number(it.created_at) : t;
-          await db
-            .prepare(
-              `INSERT INTO highlights (member_id, clip_id, doc, text, chapter, created_at, share_ts) VALUES (?, ?, ?, ?, ?, ?, ?)
-               ON CONFLICT(member_id, clip_id) DO UPDATE SET text = excluded.text, deleted = 0`
-            )
-            .bind(me.id, id, doc, text, String(it.chapter || "").slice(0, 120), created, t)
-            .run();
-        }
+        await upsertHighlights(db, me, doc, items);
       }
       return kj({ accepted: 1 });
     }

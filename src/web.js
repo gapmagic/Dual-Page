@@ -82,8 +82,8 @@ async function join() {
   try { const r = await call("join", { code: $("#code").value, name: $("#name").value, tz, d: dev() }); setToken(r.t); } catch {}
 }
 function dev() { try { return localStorage.getItem("rp_dev") || ""; } catch { return ""; } }
-async function getPlugin() {
-  try { const r = await call("device", { d: dev() }); localStorage.setItem("rp_dev", r.d); location.href = "/api/plugin.zip?t=" + token + "&d=" + r.d; } catch {}
+async function getPlugin(kind) {
+  try { const r = await call("device", { d: dev() }); localStorage.setItem("rp_dev", r.d); location.href = "/api/" + (kind === "ko" ? "koplugin.zip" : "plugin.zip") + "?t=" + token + "&d=" + r.d; } catch {}
 }
 async function upload(f) {
   $("#err").textContent = "Đang tải sách lên…";
@@ -169,13 +169,17 @@ function render() {
   if (s.phase !== "active") out.push(bookCard(s));
   if (s.phase === "active" || s.phase === "recap") out.push(highlightCard(s));
   const linked = s.devices > 0;
-  out.push(\`<div class="card"><h2>Máy đọc XTeink</h2>
-    \${linked ? \`<p class="ok">Máy đọc của bạn đã nối với phòng này ✓</p><p class="muted">Plugin chỉ cài một lần. Khi tạo hoặc tham gia phòng mới trên trình duyệt này, máy tự chuyển sang phòng mới. <a href="#" onclick="getPlugin();return false">Tải lại plugin</a></p>\`
-    : \`<ol><li><button onclick="getPlugin()">Tải plugin cho máy đọc</button></li>
+  out.push(\`<div class="card"><h2>Máy đọc</h2>
+    \${linked ? \`<p class="ok">Máy đọc của bạn đã nối với phòng này ✓</p><p class="muted">Plugin chỉ cài một lần. Khi tạo hoặc tham gia phòng mới trên trình duyệt này, máy tự chuyển sang phòng mới.</p>\` : \`<p class="muted">Hai bạn dùng máy khác nhau vẫn vào chung một phòng được. Chọn đúng loại máy của bạn:</p>\`}
+    <details\${linked ? "" : " open"}><summary><b>XTeink (CrossPoint 2.0 trở lên)</b></summary><ol><li><button onclick="getPlugin('xt')">Tải plugin cho XTeink</button></li>
     <li>Giải nén, chép thư mục <b>dualpage</b> vào thư mục <b>plugins</b> ở gốc thẻ SD.</li>
     <li>Settings → Connectivity → Plugins: Enabled. Settings → Sleep Screen: Custom.</li>
-    <li>Kết nối Wi-Fi một lần, rồi khởi động lại máy.</li></ol>
-    <p class="muted">Chỉ cài một lần cho mỗi máy. Sau này đổi phòng không cần chép lại.</p>\`}
+    <li>Kết nối Wi-Fi một lần, rồi khởi động lại máy.</li></ol></details>
+    <details\${linked ? "" : " open"}><summary><b>KOReader (Kindle, Kobo, PocketBook, Android)</b></summary><ol><li><button onclick="getPlugin('ko')">Tải plugin cho KOReader</button></li>
+    <li>Giải nén, chép thư mục <b>dualpage.koplugin</b> vào <b>koreader/plugins</b> trên máy.</li>
+    <li>Khởi động lại KOReader. Mở menu chính → <b>Dual Page</b> → bật <b>Dùng màn hình chờ Dual Page</b>.</li>
+    <li>Đọc như bình thường. Highlight mới tự gửi, hoặc chọn chữ → <b>Chia sẻ Dual Page</b>.</li></ol></details>
+    <p class="muted">Chỉ cài một lần cho mỗi máy. Sau này đổi phòng không cần chép lại.</p>
     <p class="muted">Màn hình chờ trên máy sẽ trông như thế này:</p><img class="prev" src="/d/\${token}/sleep.bmp?v=\${s.now}" alt="Xem trước màn hình chờ"></div>\`);
   out.push(\`<p class="muted">Cập nhật lúc \${s.updated_label} · <a href="#" onclick="load();return false">Làm mới</a> · <a href="#" onclick="if(confirm('Rời phòng này để tạo hoặc tham gia phòng khác? Dữ liệu phòng vẫn còn, vào lại bằng link có #t=.')){localStorage.removeItem('rp_t');location.href='/'};return false">Đổi phòng</a><br>Link riêng của bạn (mở trên máy khác): <input readonly value="\${location.origin}/#t=\${token}" onclick="this.select()"></p>\`);
   $("#app").innerHTML = out.join("");

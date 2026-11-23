@@ -8,7 +8,7 @@ const table = (() => {
   }
   return t;
 })();
-function crc32(b) {
+export function crc32(b) {
   let c = 0xffffffff;
   for (let i = 0; i < b.length; i++) c = table[(c ^ b[i]) & 0xff] ^ (c >>> 8);
   return (c ^ 0xffffffff) >>> 0;

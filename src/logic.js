@@ -94,7 +94,7 @@ export async function computeState(db, me) {
 
   // Highlights of the shared book (clippings synced from the readers).
   const { results: hl } = await db
-    .prepare(`SELECT * FROM highlights WHERE deleted = 0 AND member_id IN (${ids.map(() => "?").join(",")}) ORDER BY share_ts DESC, created_at DESC LIMIT 60`)
+    .prepare(`SELECT * FROM highlights WHERE deleted = 0 AND member_id IN (${ids.map(() => "?").join(",")}) ORDER BY share_ts DESC, created_at DESC, rowid DESC LIMIT 60`)
     .bind(...ids)
     .all();
   const docsFor = (m) => new Set([room.book_doc, m.book_doc].filter(Boolean));
