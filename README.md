@@ -90,3 +90,4 @@ Phần kỹ thuật (cấu trúc mã, API, chạy local, deploy) nằm ở [docs
 - [x] Tên miền dualpage.online
 - [ ] Plugin KOReader (Kindle, Kobo), dùng chung phòng với XTeink
 - [ ] Làm mới giao diện trang web cho đẹp và bắt mắt hơn
+- [ ] Chỗ đặt quảng cáo cho nhà sách, nhà xuất bản và nhãn hàng trên trang Dual Page
