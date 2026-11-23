@@ -18,7 +18,7 @@ jobs:
       - name: Smoke test
         run: |
           URL=$(npx wrangler deployments status 2>/dev/null | grep -o 'https://[^ ]*workers.dev' | head -1 || true)
-          URL=${URL:-https://readpal.dualpage-bcaff4.workers.dev}
+          URL=${URL:-https://dualpage.dualpage-bcaff4.workers.dev}
           for i in $(seq 1 18); do
             code=$(curl -s -o /dev/null -w '%{http_code}' "$URL/" || true)
             echo "$URL -> $code"; [ "$code" = 200 ] && break; sleep 10
