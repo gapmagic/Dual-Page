@@ -171,7 +171,7 @@ async function api(req, env, url, route) {
       const files = pluginFiles(url.origin, token, me.name);
       const zip = makeZip(files);
       return new Response(zip, {
-        headers: { "content-type": "application/zip", "content-disposition": 'attachment; filename="readpal-plugin.zip"' },
+        headers: { "content-type": "application/zip", "content-disposition": 'attachment; filename="dualpage-plugin.zip"' },
       });
     }
   }
@@ -262,7 +262,7 @@ async function device(req, env, url, rest) {
     const id = decodeURIComponent(action.slice(4)).replace(/\.txt$/, "");
     const room = await db.prepare("SELECT * FROM rooms WHERE id = ?").bind(me.room_id).first();
     const partner = await db.prepare("SELECT * FROM members WHERE room_id = ? AND id != ?").bind(me.room_id, me.id).first();
-    let msg = "Reading Pal";
+    let msg = "Dual Page";
     try {
       if (id === "nudge" && partner) {
         await db.prepare("UPDATE members SET nudged_ts = ? WHERE id = ?").bind(now(), partner.id).run();

@@ -1,4 +1,4 @@
-# Reading Pal for XTeink (CrossPoint)
+# Dual Page for XTeink (CrossPoint)
 
 Two readers keep a shared reading streak. Backend: Cloudflare Workers + D1.
 Device side: an SD-card plugin for CrossPoint firmware (no firmware build).
@@ -22,5 +22,5 @@ With an API token: `CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... npx wrang
 - `reader.session` (POST, connect at sleep) – active reading summary: start/end progress, seconds, KOSync document hash.
 - `reader.exit` – percent when leaving a book.
 - `sleep.enter` – downloads `/sleep.bmp` (needs Sleep Screen = Custom) with the current percent in the query string.
-- Home → Plugins → Reading Pal – status list; rows trigger actions (nudge, extension) via tiny downloads into `/.readpal`.
+- Home → Plugins → Dual Page – status list; rows trigger actions (nudge, extension) via tiny downloads into `/.dualpage`.
   Search saves a quote.

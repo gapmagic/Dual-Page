@@ -15,7 +15,7 @@ export function renderScreen(s) {
   const c = new Canvas();
   // header band
   c.rect(0, 0, W, 64);
-  c.center(16, "READING PAL", "bold", 0);
+  c.center(16, "DUAL PAGE", "bold", 0);
   let y = 84;
 
   if (s.phase === "waiting") {
@@ -29,7 +29,7 @@ export function renderScreen(s) {
   if (s.phase === "pending") {
     c.center(220, `${s.partner.name} đã tham gia!`, "bold");
     c.center(270, `Chờ xác nhận sprint ${s.sprint_days} ngày`, "body");
-    c.wrap(M, 320, s.me.role === "guest" ? "Mở Plugins → Reading Pal hoặc trang web để đồng ý." : "Đang chờ bạn ấy đồng ý.", W - 2 * M, "body", 3);
+    c.wrap(M, 320, s.me.role === "guest" ? "Mở Plugins → Dual Page hoặc trang web để đồng ý." : "Đang chờ bạn ấy đồng ý.", W - 2 * M, "body", 3);
     footer(c, s);
     return c.toBMP();
   }

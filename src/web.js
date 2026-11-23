@@ -1,7 +1,7 @@
 export const PAGE = `<!DOCTYPE html>
 <html lang="vi"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Reading Pal</title>
+<title>Dual Page</title>
 <style>
 :root{--ink:#1d1b18;--mute:#6b665e;--line:#d9d4ca;--bg:#f6f3ed;--card:#fff;--acc:#2f5d50}
 *{box-sizing:border-box}body{margin:0;font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}
@@ -24,7 +24,7 @@ button.ghost{background:#fff;color:var(--acc)}button:disabled{opacity:.5}
 img.prev{width:100%;max-width:240px;border:1px solid var(--line);display:block;margin:8px auto}
 ol{padding-left:20px}li{margin:4px 0}
 </style></head><body><main>
-<h1>READING PAL</h1>
+<h1>DUAL PAGE</h1>
 <div id="err" class="err"></div>
 <div id="app">Đang tải…</div>
 </main>
@@ -127,7 +127,7 @@ function render() {
   }
   out.push(\`<div class="card"><h2>Cài lên máy đọc XTeink</h2>
     <ol><li><a href="/api/plugin.zip?t=\${token}">Tải plugin của bạn</a> (đã gắn sẵn tài khoản của bạn, không chia sẻ file này).</li>
-    <li>Giải nén, chép thư mục <b>readpal</b> vào thư mục <b>plugins</b> ở gốc thẻ SD.</li>
+    <li>Giải nén, chép thư mục <b>dualpage</b> vào thư mục <b>plugins</b> ở gốc thẻ SD.</li>
     <li>Settings → Connectivity → Plugins: Enabled. Settings → Sleep Screen: Custom.</li>
     <li>Kết nối Wi-Fi một lần, rồi khởi động lại máy.</li></ol>
     <p class="muted">Màn hình chờ trên máy sẽ trông như thế này:</p><img class="prev" src="/d/\${token}/sleep.bmp?v=\${s.now}" alt="Xem trước màn hình chờ"></div>\`);

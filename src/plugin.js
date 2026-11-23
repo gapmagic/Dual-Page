@@ -2,7 +2,7 @@
 export function pluginFiles(origin, token, name) {
   const D = "{cfg.server}/d/{cfg.token}";
   const device = {
-    title: "Reading Pal",
+    title: "Dual Page",
     description: "Chuỗi đọc chung với bạn đọc",
     config: { file: "config.json" },
     browse: {
@@ -15,7 +15,7 @@ export function pluginFiles(origin, token, name) {
     },
     download: {
       url: `${D}/act/{id_enc}.txt`,
-      dest_dir: "/.readpal",
+      dest_dir: "/.dualpage",
       filename: "{id}.txt",
     },
     events: {
@@ -46,15 +46,15 @@ export function pluginFiles(origin, token, name) {
     },
   };
   const manifest = {
-    title: "Reading Pal",
+    title: "Dual Page",
     description: "Giữ chuỗi đọc chung với bạn đọc",
     version: "0.1.0",
   };
   const config = { server: origin, token, name };
-  const readme = `Reading Pal (${name})
+  const readme = `Dual Page (${name})
 
 Cài đặt một lần:
-1. Chép cả thư mục "readpal" vào thư mục "plugins" ở gốc thẻ SD (tạo thư mục plugins nếu chưa có), để có /plugins/readpal/device.json.
+1. Chép cả thư mục "dualpage" vào thư mục "plugins" ở gốc thẻ SD (tạo thư mục plugins nếu chưa có), để có /plugins/readpal/device.json.
 2. Settings → Connectivity → Plugins: bật Enabled.
 3. Settings → Sleep Screen: chọn Custom để màn hình chờ hiện chuỗi đọc.
 4. Kết nối Wi-Fi một lần để máy nhớ mạng.
@@ -63,13 +63,13 @@ Cài đặt một lần:
 Cách dùng:
 - Cứ đọc như bình thường. Khi thoát sách hoặc cho máy ngủ, tiến độ tự gửi lên và màn hình chờ cập nhật chuỗi đọc, trạng thái bạn đọc.
 - Cuốn sách đầu tiên bạn mở sau khi cài là sách của sprint.
-- Home → Plugins → Reading Pal: xem trạng thái (mở lại để làm mới), nhắc bạn đọc, gia hạn sprint.
-- Lưu trích dẫn: trong Reading Pal bấm Tìm kiếm, gõ 1-2 câu rồi xác nhận.
+- Home → Plugins → Dual Page: xem trạng thái (mở lại để làm mới), nhắc bạn đọc, gia hạn sprint.
+- Lưu trích dẫn: trong Dual Page bấm Tìm kiếm, gõ 1-2 câu rồi xác nhận.
 `;
   return [
-    ["readpal/device.json", JSON.stringify(device, null, 2)],
-    ["readpal/manifest.json", JSON.stringify(manifest, null, 2)],
-    ["readpal/config.json", JSON.stringify(config)],
-    ["readpal/README.md", readme],
+    ["dualpage/device.json", JSON.stringify(device, null, 2)],
+    ["dualpage/manifest.json", JSON.stringify(manifest, null, 2)],
+    ["dualpage/config.json", JSON.stringify(config)],
+    ["dualpage/README.md", readme],
   ];
 }
