@@ -54,7 +54,7 @@ export function pluginFiles(origin, token, name) {
   const readme = `Dual Page (${name})
 
 Cài đặt một lần:
-1. Chép cả thư mục "dualpage" vào thư mục "plugins" ở gốc thẻ SD (tạo thư mục plugins nếu chưa có), để có /plugins/readpal/device.json.
+1. Chép cả thư mục "dualpage" vào thư mục "plugins" ở gốc thẻ SD (tạo thư mục plugins nếu chưa có), để có /plugins/dualpage/device.json.
 2. Settings → Connectivity → Plugins: bật Enabled.
 3. Settings → Sleep Screen: chọn Custom để màn hình chờ hiện chuỗi đọc.
 4. Kết nối Wi-Fi một lần để máy nhớ mạng.
