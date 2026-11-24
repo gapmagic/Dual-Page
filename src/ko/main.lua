@@ -568,26 +568,6 @@ function DualPage:quoteItems(sec)
         table.insert(items, { text = text, bold = true, dim = true, callback = function() end })
     end
 
-    header(L(P .. " chia sẻ với bạn", P .. " shared with you"))
-    if type(p.current) == "table" then
-        table.insert(items, {
-            text = quoteRow(p.current),
-            callback = function() self:showQuote(L(P .. " chia sẻ với bạn", P .. " shared with you"), p.current) end,
-        })
-    else
-        table.insert(items, { text = L(P .. " chưa chia sẻ câu nào.", P .. " hasn't shared a quote yet."), dim = true, callback = function() end })
-    end
-    local ph = type(p.history) == "table" and p.history or {}
-    if #ph > 0 then
-        table.insert(items, {
-            text = L("Xem " .. #ph .. " câu " .. P .. " chia sẻ trước đó", "See " .. #ph .. " earlier quotes from " .. P),
-            mandatory = "›",
-            callback = function()
-                self:historyMenu(L(P .. " đã chia sẻ", P .. " shared"), ph, L(P .. " đã chia sẻ", P .. " shared"))
-            end,
-        })
-    end
-
     header(L("Bạn chia sẻ với " .. P, "You shared with " .. P))
     if type(me.current) == "table" then
         table.insert(items, {
@@ -609,6 +589,26 @@ function DualPage:quoteItems(sec)
             mandatory = "›",
             callback = function()
                 self:historyMenu(L("Bạn đã chia sẻ", "You shared"), mh, L("Bạn đã chia sẻ", "You shared"))
+            end,
+        })
+    end
+
+    header(L(P .. " chia sẻ với bạn", P .. " shared with you"))
+    if type(p.current) == "table" then
+        table.insert(items, {
+            text = quoteRow(p.current),
+            callback = function() self:showQuote(L(P .. " chia sẻ với bạn", P .. " shared with you"), p.current) end,
+        })
+    else
+        table.insert(items, { text = L(P .. " chưa chia sẻ câu nào.", P .. " hasn't shared a quote yet."), dim = true, callback = function() end })
+    end
+    local ph = type(p.history) == "table" and p.history or {}
+    if #ph > 0 then
+        table.insert(items, {
+            text = L("Xem " .. #ph .. " câu " .. P .. " chia sẻ trước đó", "See " .. #ph .. " earlier quotes from " .. P),
+            mandatory = "›",
+            callback = function()
+                self:historyMenu(L(P .. " đã chia sẻ", P .. " shared"), ph, L(P .. " đã chia sẻ", P .. " shared"))
             end,
         })
     end
