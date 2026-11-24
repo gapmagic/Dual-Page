@@ -9,6 +9,9 @@ Same rooms as the XTeink/CrossPoint plugin: https://dualpage.online
 - Optional: use the Dual Page status image as KOReader's sleep screen.
 ]]
 
+-- Filled in by the server; the plugin updates itself when the server has a newer one.
+local PLUGIN_VERSION = "dev"
+
 local DataStorage = require("datastorage")
 local Dispatcher = require("dispatcher")
 local Device = require("device")
@@ -288,7 +291,36 @@ function DualPage:onNetworkConnected()
         end
         self:flushQueues()
         self:refreshScreen()
+        self:checkUpdate()
     end)
+end
+
+-- ---------- self-update ----------
+-- Asks the server for the current plugin version (at most every few hours) and,
+-- if it changed, replaces main.lua in place. The new code runs after a restart.
+function DualPage:checkUpdate(force)
+    if not self.path or PLUGIN_VERSION == "dev" or self.updated then return end
+    local now = os.time()
+    if not force and now - (self.store:readSetting("update_check") or 0) < 3 * 3600 then return end
+    self.store:saveSetting("update_check", now)
+    self.store:flush()
+    local v = request("GET", "ko/version")
+    v = v and util.trim(v)
+    if not v or v == "" or v == PLUGIN_VERSION or not v:match("^[%w]+$") then return end
+    local tmp = self.path .. "/main.lua.new"
+    if not request("GET", "ko/main.lua", nil, nil, tmp) then return end
+    local fh = io.open(tmp, "rb")
+    local code = fh and fh:read("*a") or ""
+    if fh then fh:close() end
+    -- Only swap in a complete file that parses.
+    if not code:find("return DualPage", 1, true) or not loadstring(code) then
+        os.remove(tmp)
+        return
+    end
+    os.remove(self.path .. "/main.lua")
+    if not os.rename(tmp, self.path .. "/main.lua") then return end
+    self.updated = true
+    UIManager:askForRestart(L("Dual Page vừa được cập nhật. Khởi động lại KOReader để dùng bản mới?", "Dual Page was updated. Restart KOReader to use the new version?"))
 end
 
 -- ---------- highlights ----------
@@ -464,6 +496,7 @@ end
 -- open_id opens that section directly (after an action).
 function DualPage:showHome(open_id)
     NetworkMgr:runWhenOnline(function()
+        UIManager:nextTick(function() self:checkUpdate(true) end)
         -- Send what was just read first, so the status is current.
         if self.ui.document and self.start_pct then
             local body = self:takeSession()

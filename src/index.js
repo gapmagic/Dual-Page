@@ -2,7 +2,7 @@ import { computeState, ingest, firstSeen, loadMember, inviteCode, randomHex, now
 import { renderScreen, renderNoRoom } from "./screen.js";
 import { makeZip } from "./zip.js";
 import { pluginFiles } from "./plugin.js";
-import { koPluginFiles } from "./koplugin.js";
+import { koPluginFiles, KO_VERSION, KO_MAIN } from "./koplugin.js";
 import { PAGE } from "./web.js";
 
 const DAY = 86400;
@@ -355,6 +355,9 @@ async function device(req, env, url, rest) {
 
   // KOReader: where this reader got to in the shared book, so a re-downloaded
   // copy (whose on-device position was lost with the old file) can jump back.
+  if (action === "ko/version") return text(KO_VERSION);
+  if (action === "ko/main.lua") return new Response(KO_MAIN, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
+
   if (action === "resume") {
     const doc = url.searchParams.get("doc") || "";
     const room = await db.prepare("SELECT book_doc FROM rooms WHERE id = ?").bind(me.room_id).first();

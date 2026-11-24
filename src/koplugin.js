@@ -2,6 +2,16 @@
 import MAIN from "./ko/main.lua";
 import META from "./ko/_meta.lua";
 
+// Version = hash of the plugin code; the installed plugin compares it with
+// /d/<token>/ko/version and updates itself when it differs.
+function fnv(s) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193) >>> 0;
+  return h.toString(16).padStart(8, "0");
+}
+export const KO_VERSION = fnv(MAIN + META);
+export const KO_MAIN = MAIN.replace('local PLUGIN_VERSION = "dev"', `local PLUGIN_VERSION = "${KO_VERSION}"`);
+
 export function koPluginFiles(origin, token, lang = "vi") {
   const en = lang === "en";
   const D = "dualpage.koplugin/";
@@ -38,7 +48,7 @@ dualpage_config.lua holds this device's private code; don't share it.
 `;
   return [
     [D + "_meta.lua", META],
-    [D + "main.lua", MAIN],
+    [D + "main.lua", KO_MAIN],
     [D + "dualpage_config.lua", config],
     [D + "README.txt", en ? readmeEn : readme],
   ];
