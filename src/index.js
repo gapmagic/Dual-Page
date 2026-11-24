@@ -512,7 +512,7 @@ async function homeSections(db, me) {
     L("Sprint và gia hạn", "Sprint & extension"),
     ext && !ext.by_me ? L(`${P} đề nghị +${ext.days} ngày`, `${P} asks for +${ext.days} days`) : L(`Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`, `Day ${s.sprint.day}/${s.sprint.total_days}, ${s.sprint.days_left} days left`)
   );
-  info(L(`Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`, `Day ${s.sprint.day}/${s.sprint.total_days}, ${s.sprint.days_left} days left`), L(`Mục tiêu của bạn: ${s.me.target_pct ? Math.round(s.me.target_pct) : "?"}% sách mỗi ngày`, `Your goal: ${s.me.target_pct ? Math.round(s.me.target_pct) : "?"}% of the book per day`));
+  info(L(`Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`, `Day ${s.sprint.day}/${s.sprint.total_days}, ${s.sprint.days_left} days left`), s.me.target_pct ? L(`Mục tiêu của bạn: ${Math.round(s.me.target_pct)}% sách mỗi ngày`, `Your goal: ${Math.round(s.me.target_pct)}% of the book per day`) : L("Mục tiêu mỗi ngày được tính khi bạn mở sách chung", "Your daily goal is set when you open the shared book"));
   if (ext && !ext.by_me) {
     act("ext_yes", L(`Đồng ý gia hạn +${ext.days} ngày`, `Accept +${ext.days} days`), L(`${P} đề nghị`, `Proposed by ${P}`));
     act("ext_no", L("Từ chối gia hạn", "Decline the extension"));
