@@ -53,17 +53,22 @@ There are only 2 people per room. No account needed: the website remembers your 
 4. Put the card back. Go to **Settings → Connectivity → Plugins** and turn on **Enabled**.
 5. Go to **Settings → Sleep Screen** and pick **Custom** so the sleep screen shows Dual Page.
 6. Connect to Wi-Fi once, then restart the reader.
-7. On the plugin's settings page, tap **Turn on highlight sharing**. This points the reader's KOSync highlight sync at Dual Page.
+7. Turn on highlight sharing (once; you need a computer or phone on the same Wi-Fi):
+   1. On the reader, open **File Transfer** and connect to Wi-Fi. The reader shows an address, e.g. `http://192.168.1.25/` or `http://crosspoint.local/`.
 
-   **Or do it on the device:** open Dual Page → **Highlights**. Until sharing is on, it shows your device's 6-character code and the values to enter. Go to **Settings → CrossPoint Sync** and set:
-   - Server Type: **KoSync**
-   - Sync Server URL: **https://dualpage.online/kosync**
-   - Username: **the 6-character code** (any case)
-   - Password: **dualpage**
-   - Document Matching: **Binary**
-   - Sync Clippings: **On**
+      <img src="guide-en/05a-file-transfer.png" width="280" alt="File Transfer screen on the reader">
 
-   The setup rows hide after the first sync.
+   2. On a computer on **the same Wi-Fi**, open a browser and type that address. The reader's page opens. Click **Plugins** in the top bar.
+
+      <img src="guide-en/05b-reader-page-on-pc.png" width="560" alt="The reader's page open on a computer">
+
+   3. On the **Dual Page: share highlights** card, click **Turn on highlight sharing**. When it shows **On ✓**, you're done. This points the reader's KOSync highlight sync at Dual Page.
+
+      <img src="guide-en/05c-turn-on-sharing.png" width="560" alt="Turn on highlight sharing on the Plugins page">
+
+   4. On the reader, exit **File Transfer**.
+
+   *Illustrations only; your reader's address will differ.*
 
 **Open Dual Page on the reader:** Home → Plugins → **Dual Page**.
 
@@ -148,7 +153,7 @@ Highlights in the shared book are sent to Dual Page. **Your newest highlight aut
 
 ### XTeink
 
-**Turn it on once:** do step 7 of the XTeink setup (the **Turn on highlight sharing** button on the reader's web page, or enter the values shown under Dual Page → **Highlights** in **Settings → CrossPoint Sync**).
+**Turn it on once:** do step 7 of the XTeink setup (the **Turn on highlight sharing** button on the reader's web page).
 
 **Highlight:**
 - **X4:** press **Confirm** (2nd button from the left on the front row) to open the in-book menu → **Create Clipping**. Use Left/Right to pick the first word, press Confirm, pick the last word, press Confirm again.

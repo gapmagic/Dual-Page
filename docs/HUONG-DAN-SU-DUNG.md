@@ -53,17 +53,22 @@ Phòng chỉ có 2 người. Không cần tài khoản: trang web nhớ phòng c
 4. Lắp thẻ lại vào máy. Vào **Settings → Connectivity → Plugins** và bật **Enabled**.
 5. Vào **Settings → Sleep Screen** và chọn **Custom**, để màn hình chờ hiện Dual Page.
 6. Kết nối Wi-Fi một lần, rồi khởi động lại máy.
-7. Vào trang cài đặt của plugin Dual Page và bấm **Bật chia sẻ highlight**. Nút này cài đồng bộ highlight (KOSync) về Dual Page.
+7. Bật chia sẻ highlight (làm một lần, cần máy tính hoặc điện thoại cùng Wi-Fi):
+   1. Trên máy, mở **File Transfer** và kết nối Wi-Fi. Máy hiện một địa chỉ, ví dụ `http://192.168.1.25/` hoặc `http://crosspoint.local/`.
 
-   **Hoặc làm ngay trên máy:** mở Dual Page → mục **Câu hay**. Khi chưa bật, mục này hiện mã 6 ký tự của máy bạn và các dòng cần nhập. Vào **Settings → CrossPoint Sync** và nhập:
-   - Server Type: **KoSync**
-   - Sync Server URL: **https://dualpage.online/kosync**
-   - Username: **mã 6 ký tự** (viết hoa hay thường đều được)
-   - Password: **dualpage**
-   - Document Matching: **Binary**
-   - Sync Clippings: **On**
+      <img src="guide/05a-file-transfer.png" width="280" alt="Màn hình File Transfer trên máy">
 
-   Sau lần đồng bộ đầu tiên, các dòng hướng dẫn tự ẩn.
+   2. Trên máy tính đang dùng **cùng mạng Wi-Fi**, mở trình duyệt và gõ địa chỉ đó. Trang của máy đọc hiện ra. Bấm **Plugins** ở thanh trên cùng.
+
+      <img src="guide/05b-trang-may-tren-pc.png" width="560" alt="Trang của máy đọc mở trên máy tính">
+
+   3. Ở thẻ **Dual Page: chia sẻ câu highlight**, bấm **Bật chia sẻ highlight**. Khi hiện **Đã bật ✓** là xong. Nút này cài đồng bộ highlight (KOSync) về Dual Page.
+
+      <img src="guide/05c-bat-chia-se-highlight.png" width="560" alt="Bấm Bật chia sẻ highlight trong trang Plugins">
+
+   4. Trên máy, thoát **File Transfer**.
+
+   *Ảnh minh họa, địa chỉ trên máy bạn sẽ khác.*
 
 **Mở Dual Page trên máy:** Home → Plugins → **Dual Page**.
 
@@ -153,7 +158,7 @@ Highlight trong sách chung được gửi về Dual Page. **Câu mới nhất t
 
 ### XTeink
 
-**Bật một lần:** làm bước 7 ở phần cài đặt XTeink (nút **Bật chia sẻ highlight** trên trang web của máy, hoặc tự nhập trong **Settings → CrossPoint Sync** theo các dòng hiện ở mục **Câu hay** của Dual Page).
+**Bật một lần:** làm bước 7 ở phần cài đặt XTeink (nút **Bật chia sẻ highlight** trên trang web của máy).
 
 **Highlight:**
 - **X4:** bấm nút **Confirm** (nút thứ 2 từ trái ở hàng nút mặt trước) để mở menu trong sách → **Create Clipping**. Dùng Left/Right chọn chữ đầu, bấm Confirm, chọn chữ cuối, bấm Confirm lần nữa.
