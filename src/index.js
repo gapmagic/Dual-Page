@@ -670,7 +670,17 @@ async function kosync(req, env, url, route) {
   if (route.startsWith("syncs/progress/")) {
     const doc = route.slice("syncs/progress/".length);
     const row = me && /^[0-9a-f]{32}$/.test(doc) ? await db.prepare("SELECT data FROM kosync WHERE member_id = ? AND document = ?").bind(me.id, doc).first() : null;
-    const rec = row ? JSON.parse(row.data) : null;
+    let rec = row ? JSON.parse(row.data) : null;
+    // The shared book: if no saved position matches where Dual Page last saw
+    // this reader, answer with that percentage, so "Sync progress" on a freshly
+    // re-downloaded copy jumps back to it.
+    if (me && /^[0-9a-f]{32}$/.test(doc) && me.bp > 0) {
+      const room = await db.prepare("SELECT book_doc FROM rooms WHERE id = ?").bind(me.room_id).first();
+      const ours = doc === room?.book_doc || doc === me.book_doc;
+      const pctNow = me.bp / FULL;
+      if (ours && (!rec || Math.abs((Number(rec.percentage) || 0) - pctNow) > 0.01))
+        rec = { document: doc, progress: "", percentage: pctNow, device: "Dual Page", device_id: "dualpage", timestamp: me.pos_ts || now() };
+    }
     return rec ? kj(rec) : kj({}, 404);
   }
 
