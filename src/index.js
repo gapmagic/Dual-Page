@@ -51,7 +51,29 @@ function parseTail(raw) {
   return out;
 }
 
+// Shared book files are only needed while a room is reading. Daily cleanup:
+// 7 days after the sprint ends, or 30 days after a room was created if its
+// sprint never started, the file is deleted (title and progress stay).
+const BOOK_KEEP_AFTER_END = 7 * DAY;
+const BOOK_KEEP_UNSTARTED = 30 * DAY;
+async function cleanupBooks(env) {
+  const t = now();
+  const { results } = await env.DB.prepare(
+    "SELECT id FROM rooms WHERE book_file IS NOT NULL AND ((end_ts IS NOT NULL AND end_ts < ?) OR (start_ts IS NULL AND created_at < ?)) LIMIT 200",
+  )
+    .bind(t - BOOK_KEEP_AFTER_END, t - BOOK_KEEP_UNSTARTED)
+    .all();
+  for (const r of results) {
+    await env.BOOKS.delete("book:" + r.id);
+    await env.DB.prepare("UPDATE rooms SET book_file = NULL, book_size = NULL WHERE id = ?").bind(r.id).run();
+  }
+  return results.length;
+}
+
 export default {
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(cleanupBooks(env));
+  },
   async fetch(req, env) {
     const url = new URL(req.url);
     const p = url.pathname;
