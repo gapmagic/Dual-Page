@@ -149,7 +149,9 @@ Không có Wi-Fi cũng không sao. Máy giữ lại và gửi khi có mạng.
 
 ## 5. Chia sẻ câu hay (highlight)
 
-Mỗi lần bạn highlight trong sách chung, câu đó được gửi về Dual Page. **Câu mới nhất tự hiện trên màn hình chờ của bạn đọc.** Câu dài hơn 140 ký tự được rút gọn để vừa màn hình.
+Mỗi lần bạn highlight trong sách chung, câu đó được gửi về Dual Page. **Câu mới nhất tự hiện trên màn hình chờ của bạn đọc.**
+
+**XTeink:** máy chỉ gửi highlight khi bạn đồng bộ. Highlight xong, mở menu trong sách → **Sync Progress** (hoặc giữ nút Menu khi đang đọc). Cần đã bật chia sẻ highlight ở bước cài đặt. KOReader thì gửi ngay, không cần làm gì thêm. Câu dài hơn 140 ký tự được rút gọn để vừa màn hình.
 
 Muốn chọn một câu khác:
 - **Trên máy:** mở menu Dual Page, chọn một dòng **Chia sẻ: "…"**.
@@ -221,7 +223,7 @@ Không. Mỗi máy cài một lần. Khi bạn tạo hoặc vào phòng mới **
 **Lỡ xoá sách chung rồi tải lại thì sao?**
 Tiến độ trên máy chủ vẫn còn, nhưng máy mở lại sách từ đầu.
 - **KOReader:** khi mở sách, plugin hỏi "Bạn đã đọc tới …%. Mở tiếp từ chỗ đó?", bấm **Đọc tiếp**.
-- **XTeink:** mở sách, vào menu trong sách → **KOReader Sync**. Máy nhảy về chỗ Dual Page ghi nhận lần cuối (cần đã bật chia sẻ highlight ở bước cài đặt). Nên đồng bộ trước khi thoát sách, vì thoát ở 0% thì tiến độ sẽ ghi là 0%.
+- **XTeink:** mở sách, vào menu trong sách → **Sync Progress**. Máy nhảy về chỗ Dual Page ghi nhận lần cuối (cần đã bật chia sẻ highlight ở bước cài đặt). Nên đồng bộ trước khi thoát sách, vì thoát ở 0% thì tiến độ sẽ ghi là 0%.
 
 **Không thấy sách vừa tải trên Kindle.**
 Sách nằm trong thư mục `documents`. Bản plugin cũ có thể đã lưu ở thư mục gốc của Kindle hoặc thư mục `DualPage` ngoài `documents`: trong trình duyệt file của KOReader, lùi lên thư mục gốc để tìm. Bấm lại nút tải trong menu Dual Page cũng mở được sách cũ.

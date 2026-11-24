@@ -146,6 +146,8 @@ No Wi-Fi? No problem. The reader keeps the data and sends it when it's back onli
 
 Every highlight you make in the shared book is sent to Dual Page. **Your newest highlight automatically appears on your partner's sleep screen.** Lines longer than 140 characters are shortened to fit.
 
+**XTeink:** the reader only sends highlights when you sync. After highlighting, open the in-book menu → **Sync Progress** (or long-press Menu while reading). Highlight sharing must be turned on during setup. KOReader sends right away.
+
 To share a different line:
 - **On the reader:** Dual Page menu → **Highlights** → a **Share: "…"** row.
 - **On the website:** **Shared highlights** card → **share this one**.
@@ -204,7 +206,7 @@ No. Install once per device. When you create or join a new room **in the same br
 **I deleted the shared book and downloaded it again.**
 Your progress is kept on the server, but the reader opens the book from the start.
 - **KOReader:** when the book opens, the plugin asks "You got to …%. Continue from there?". Tap **Continue**.
-- **XTeink:** open the book, then the in-book menu → **KOReader Sync**. It jumps to where Dual Page last saw you (needs highlight sharing turned on during setup). Sync before leaving the book: leaving at 0% records 0%.
+- **XTeink:** open the book, then the in-book menu → **Sync Progress**. It jumps to where Dual Page last saw you (needs highlight sharing turned on during setup). Sync before leaving the book: leaving at 0% records 0%.
 
 **I can't find the downloaded book on my Kindle.**
 It's in `documents`. An older plugin may have saved it in the Kindle's top folder or in a `DualPage` folder outside `documents`: go up to the top folder in KOReader's file browser. Tapping download again in the Dual Page menu also opens the old copy.
