@@ -497,7 +497,7 @@ async function homeSections(db, me, opts = {}) {
   if (s.phase === "pending") {
     section("today", L("Bắt đầu sprint", "Start the sprint"), me.role === "guest" ? L("Chờ bạn đồng ý", "Waiting for you") : L(`Chờ ${P} đồng ý`, `Waiting for ${P}`));
     if (me.role === "guest") act("accept", L(`Đồng ý sprint ${s.sprint_days} ngày`, `Accept the ${s.sprint_days}-day sprint`), L("Bấm để bắt đầu cùng nhau", "Tap to start together"));
-    else info(L(`Chờ ${P} đồng ý sprint ${s.sprint_days} ngày`, `Waiting for ${P} to accept the ${s.sprint_days}-day sprint`), L("Mở lại mục này để làm mới", "Reopen to refresh"));
+    else info(L(`Chờ ${P} đồng ý`, `Waiting for ${P}`), L(`${P} cần bấm đồng ý sprint ${s.sprint_days} ngày. Mở lại mục này để xem.`, `${P} needs to accept the ${s.sprint_days}-day sprint. Reopen to check.`));
     bookSection();
     return { s, sections };
   }
@@ -549,7 +549,8 @@ async function homeSections(db, me, opts = {}) {
   } else {
     // CrossPoint rows cannot open a keyboard; its Search box (magnifier in the
     // header) is the number entry, answered by /search.
-    info(L("Bấm kính lúp ở trên để nhập số ngày muốn gia hạn", "Tap the magnifier at the top to enter how many days to extend"), "");
+    // Row titles are one line on the device; the description wraps to 3 lines.
+    info(L("Gia hạn sprint", "Extend the sprint"), L("Bấm kính lúp ở trên để nhập số ngày muốn gia hạn", "Tap the magnifier at the top to enter how many days to extend"));
   }
   return { s, sections };
 }
