@@ -1,3 +1,4 @@
+import { bookPages } from "./words.js";
 // Room state: streaks, daily targets, sprint phases, progress ingestion.
 export const FULL = 10000; // progress in basis points
 const DAY = 86400;
@@ -77,9 +78,21 @@ export async function loadMember(db, token) {
   return db.prepare("SELECT * FROM members WHERE token = ?").bind(token).first();
 }
 
+let BOOKS = null; // KV with the shared book files, set per request by the worker
+export function setBooks(kv) {
+  BOOKS = kv;
+}
+
 export async function computeState(db, me) {
   const t = now();
   const room = await db.prepare("SELECT * FROM rooms WHERE id = ?").bind(me.room_id).first();
+  // Rooms whose book was uploaded before page counts existed: count once.
+  if (room.book_file && room.book_pages == null && BOOKS) {
+    const data = await BOOKS.get("book:" + room.id, "arrayBuffer").catch(() => null);
+    room.book_pages = data ? (await bookPages(new Uint8Array(data), room.book_file).catch(() => null)) || 0 : 0;
+    await db.prepare("UPDATE rooms SET book_pages = ? WHERE id = ?").bind(room.book_pages, room.id).run();
+  }
+  const pages = room.book_pages || 0;
   const { results: members } = await db.prepare("SELECT * FROM members WHERE room_id = ? ORDER BY created_at").bind(room.id).all();
   const partner = members.find((x) => x.id !== me.id) || null;
   const ids = members.map((x) => x.id);
@@ -121,6 +134,9 @@ export async function computeState(db, me) {
         progress_bp: m.bp,
         target_pct: m.target_bp ? +(m.target_bp / 100).toFixed(1) : null,
         today_pct: +(d.gain(mToday) / 100).toFixed(1),
+        // Same numbers in "standard pages" when the shared book's length is known.
+        target_pages: pages && m.target_bp ? Math.max(1, Math.ceil((m.target_bp / FULL) * pages)) : null,
+        today_pages: pages ? Math.round((d.gain(mToday) / FULL) * pages) : null,
         done_today: d.done(mToday),
         read_today: d.gain(mToday) > 0,
         finished: !!m.finished_ts,
@@ -194,7 +210,7 @@ export async function computeState(db, me) {
     phase,
     code: room.code,
     sprint_days: room.sprint_days,
-    book: room.book_title || room.book_file ? { title: room.book_title || room.book_file, file: room.book_file || null, size: room.book_size || null } : null,
+    book: room.book_title || room.book_file ? { title: room.book_title || room.book_file, file: room.book_file || null, size: room.book_size || null, pages: pages || null } : null,
     streak,
     shared_days: sharedDays,
     sprint,

@@ -8,7 +8,9 @@ const L = (vi, en) => (EN ? en : vi);
 function statusLine(p) {
   if (!p.bound) return L("chưa mở sách chung", "not started the book");
   if (p.finished) return L("đã đọc xong sách ✓", "finished the book ✓");
-  if (p.done_today) return L(`xong hôm nay ✓ (+${p.today_pct}%)`, `done today ✓ (+${p.today_pct}%)`);
+  const pg = p.target_pages != null;
+  if (p.done_today) return pg ? L(`đã đọc ${p.today_pages}/${p.target_pages} trang ✓`, `read ${p.today_pages}/${p.target_pages} pages ✓`) : L(`xong hôm nay ✓ (+${p.today_pct}%)`, `done today ✓ (+${p.today_pct}%)`);
+  if (p.read_today && pg) return L(`đã đọc ${p.today_pages}/${p.target_pages} trang`, `read ${p.today_pages}/${p.target_pages} pages`);
   if (p.read_today) return L(`đã đọc ${fmt(p.today_pct)}% / ${fmt(p.target_pct)}%`, `read ${fmt(p.today_pct)}% / ${fmt(p.target_pct)}%`);
   return L("chưa đọc hôm nay", "not read today");
 }
@@ -95,7 +97,9 @@ export function renderScreen(s) {
     c.center(y, trim(c, L(`${s.partner.name} đề nghị gia hạn +${sp.extension.days} ngày`, `${s.partner.name} asks to extend +${sp.extension.days} days`), W - 2 * M), "body");
     y += 36;
   } else if (!quote && s.me.target_pct) {
-    c.center(y, L(`Mục tiêu mỗi ngày: ${fmt(s.me.target_pct)}% sách`, `Daily goal: ${fmt(s.me.target_pct)}% of the book`), "body");
+    c.center(y, s.me.target_pages != null
+      ? L(`Mục tiêu mỗi ngày: ${s.me.target_pages} trang`, `Daily goal: ${s.me.target_pages} pages`)
+      : L(`Mục tiêu mỗi ngày: ${fmt(s.me.target_pct)}% sách`, `Daily goal: ${fmt(s.me.target_pct)}% of the book`), "body");
     y += 36;
   }
 

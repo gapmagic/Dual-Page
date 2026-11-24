@@ -1,4 +1,5 @@
-import { computeState, ingest, firstSeen, loadMember, inviteCode, randomHex, now, pct, FULL, partialMd5 } from "./logic.js";
+import { bookPages } from "./words.js";
+import { setBooks, computeState, ingest, firstSeen, loadMember, inviteCode, randomHex, now, pct, FULL, partialMd5 } from "./logic.js";
 import { renderScreen, renderNoRoom } from "./screen.js";
 import { makeZip } from "./zip.js";
 import { pluginFiles } from "./plugin.js";
@@ -53,6 +54,7 @@ function parseTail(raw) {
 
 export default {
   async fetch(req, env) {
+    setBooks(env.BOOKS);
     const url = new URL(req.url);
     const p = url.pathname;
     const db = env.DB;
@@ -209,7 +211,8 @@ async function api(req, env, url, route) {
       const doc = await partialMd5(buf);
       await env.BOOKS.put("book:" + room.id, buf, { metadata: { name } });
       const title = room.book_title || cleanTitle(name.replace(/\.[^.]+$/, ""));
-      await db.prepare("UPDATE rooms SET book_doc = ?, book_file = ?, book_size = ?, book_title = ? WHERE id = ?").bind(doc, name, buf.length, title, room.id).run();
+      const pages = (await bookPages(buf, name).catch(() => null)) || 0;
+      await db.prepare("UPDATE rooms SET book_doc = ?, book_file = ?, book_size = ?, book_title = ?, book_pages = ? WHERE id = ?").bind(doc, name, buf.length, title, pages, room.id).run();
       return json(await computeState(db, me));
     }
 
@@ -466,9 +469,9 @@ async function homeSections(db, me, opts = {}) {
       : p.finished
         ? L("đã đọc xong", "finished the book")
         : p.done_today
-          ? L(`đã đạt mục tiêu hôm nay (+${p.today_pct}%)`, `reached today's goal (+${p.today_pct}%)`)
+          ? (p.target_pages != null ? L(`đã đạt mục tiêu hôm nay (+${p.today_pages} trang)`, `reached today's goal (+${p.today_pages} pages)`) : L(`đã đạt mục tiêu hôm nay (+${p.today_pct}%)`, `reached today's goal (+${p.today_pct}%)`))
           : p.read_today
-            ? L(`đã đọc ${Math.round(p.today_pct)}% / ${Math.round(p.target_pct)}%`, `read ${Math.round(p.today_pct)}% of ${Math.round(p.target_pct)}%`)
+            ? (p.target_pages != null ? L(`đã đọc ${p.today_pages}/${p.target_pages} trang`, `read ${p.today_pages} of ${p.target_pages} pages`) : L(`đã đọc ${Math.round(p.today_pct)}% / ${Math.round(p.target_pct)}%`, `read ${Math.round(p.today_pct)}% of ${Math.round(p.target_pct)}%`))
             : L("chưa đọc hôm nay", "hasn't read today");
   // One row only: the download button when the room has a file, else one info row.
   const bookSection = () => {
@@ -535,7 +538,7 @@ async function homeSections(db, me, opts = {}) {
     ext && !ext.by_me ? L(`${P} đề nghị +${ext.days} ngày`, `${P} asks for +${ext.days} days`) : L(`Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`, `Day ${s.sprint.day}/${s.sprint.total_days}, ${s.sprint.days_left} days left`)
   );
   const dayLine = L(`Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`, `Day ${s.sprint.day}/${s.sprint.total_days}, ${s.sprint.days_left} days left`);
-  const goal = s.me.target_pct ? L(`Mục tiêu: ${Math.round(s.me.target_pct)}% sách mỗi ngày.`, `Goal: ${Math.round(s.me.target_pct)}% of the book per day.`) : L("Mục tiêu mỗi ngày được tính khi bạn mở sách chung.", "Your daily goal is set when you open the shared book.");
+  const goal = s.me.target_pages != null ? L(`Mục tiêu: ${s.me.target_pages} trang mỗi ngày.`, `Goal: ${s.me.target_pages} pages per day.`) : s.me.target_pct ? L(`Mục tiêu: ${Math.round(s.me.target_pct)}% sách mỗi ngày.`, `Goal: ${Math.round(s.me.target_pct)}% of the book per day.`) : L("Mục tiêu mỗi ngày được tính khi bạn mở sách chung.", "Your daily goal is set when you open the shared book.");
   if (ext && !ext.by_me) {
     info(dayLine, goal);
     act("ext_yes", L(`Đồng ý gia hạn +${ext.days} ngày`, `Accept +${ext.days} days`), L(`${P} đề nghị`, `Proposed by ${P}`));

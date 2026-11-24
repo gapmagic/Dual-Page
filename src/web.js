@@ -103,6 +103,9 @@ const EN = {
   "ngày chuỗi đọc chung · ngày {0}/{1}, còn {2} ngày": "day reading streak · day {0}/{1}, {2} days left",
   "Hôm nay": "Today",
   "Mục tiêu của bạn: {0}% sách mỗi ngày": "Your goal: {0}% of the book per day",
+  "Mục tiêu của bạn: {0} trang mỗi ngày": "Your goal: {0} pages per day",
+  "đã đọc {0}/{1} trang": "read {0} of {1} pages",
+  "trang": "pages",
   "Nhắc {0} đọc": "Nudge {0} to read",
   "Gia hạn sprint": "Extend the sprint",
   "Bạn đã đề nghị +{0} ngày, chờ {1} đồng ý.": "You proposed +{0} days, waiting for {1}.",
@@ -280,7 +283,8 @@ function setToken(tk) { token = tk; localStorage.setItem("rp_t", tk); history.re
 function st(p) {
   if (!p.bound) return t("chưa mở sách chung");
   if (p.finished) return \`<span class="ok">\${t("đã đọc xong ✓")}</span>\`;
-  if (p.done_today) return \`<span class="ok">\${t("xong hôm nay ✓")}</span> (+\${p.today_pct}%)\`;
+  if (p.done_today) return \`<span class="ok">\${t("xong hôm nay ✓")}</span> (+\${p.target_pages != null ? p.today_pages + " " + t("trang") : p.today_pct + "%"})\`;
+  if (p.read_today && p.target_pages != null) return t("đã đọc {0}/{1} trang", p.today_pages, p.target_pages);
   if (p.read_today) return t("đã đọc {0}% / mục tiêu {1}%", p.today_pct, p.target_pct);
   return t("chưa đọc hôm nay");
 }
@@ -315,7 +319,7 @@ function render() {
     out.push(\`<div class="card"><div class="big">\${s.streak}</div><div class="sub">\${t("ngày chuỗi đọc chung · ngày {0}/{1}, còn {2} ngày", sp.day, sp.total_days, sp.days_left)}</div></div>\`);
     out.push(bookCard(s));
     out.push(\`<div class="card"><h2>\${t("Hôm nay")}</h2><p>\${t("Bạn")}: \${st(s.me)}<br>\${P}: \${st(s.partner)}</p>
-      <p class="muted">\${t("Mục tiêu của bạn: {0}% sách mỗi ngày", s.me.target_pct ?? "?")}\${s.same_book && !s.book ? " · " + t("hai bạn đọc cùng một cuốn") : ""}</p>\${bars()}
+      <p class="muted">\${s.me.target_pages != null ? t("Mục tiêu của bạn: {0} trang mỗi ngày", s.me.target_pages) : t("Mục tiêu của bạn: {0}% sách mỗi ngày", s.me.target_pct ?? "?")}\${s.same_book && !s.book ? " · " + t("hai bạn đọc cùng một cuốn") : ""}</p>\${bars()}
       <button \${s.partner.done_today ? "disabled" : ""} onclick="act('nudge')">\${t("Nhắc {0} đọc", P)}</button></div>\`);
     const ext = sp.extension;
     out.push(\`<div class="card"><h2>\${t("Gia hạn sprint")}</h2>\${ext ? (ext.by_me ? \`<p>\${t("Bạn đã đề nghị +{0} ngày, chờ {1} đồng ý.", ext.days, P)}</p><button class="ghost" onclick="act('extend',{action:'cancel'})">\${t("Huỷ đề nghị")}</button>\`
