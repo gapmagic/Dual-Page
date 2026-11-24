@@ -167,7 +167,7 @@ Màn hình chờ của bạn đọc đổi sang câu mới vào lần kế tiế
 **Nhắc đọc**
 - Khi bạn kia chưa đọc hôm nay, menu Dual Page trên máy và trang web có nút **Nhắc … đọc**.
 - Lời nhắc hiện trên màn hình chờ và menu của bạn kia.
-- Lời nhắc tự mất khi bạn kia đọc thêm sách chung, hoặc khi họ bấm **đã xem** trên máy hay trên web.
+- Nhắc được bất cứ lúc nào, kể cả khi bạn kia đã đọc xong hôm nay. Lời nhắc hiện tới khi bạn kia bấm **đã xem** trên máy hay trên web, tối đa 12 tiếng. Bấm lại để nhắc lần nữa.
 
 
   <img src="guide/14-man-hinh-cho-nhac.png" width="240" alt="Màn hình chờ khi được nhắc">

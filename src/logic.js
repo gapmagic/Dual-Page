@@ -130,7 +130,9 @@ export async function computeState(db, me) {
         read_today: d.gain(mToday) > 0,
         finished: !!m.finished_ts,
         minutes: Math.round(d.seconds / 60),
-        nudged: !!m.nudged_ts,
+        // A nudge works like a poke: it shows until seen, or for 12 hours.
+        nudged: !!m.nudged_ts && t - m.nudged_ts < 12 * 3600,
+        nudged_at: m.nudged_ts ? localTime(m.nudged_ts, me.tz) : null,
         fav_quote: m.fav_quote,
         shared: (() => {
           const h = hlFor(m)[0];
@@ -253,7 +255,6 @@ export async function ingest(db, m, bp, ts, opts = {}) {
     upd.bp = bp;
     upd.pos_ts = ts;
     upd.finished_ts = bp >= 9900 ? m.finished_ts || ts : null;
-    if (bp > (m.bp || 0)) upd.nudged_ts = null;
   }
   upd.last_updated = now();
 

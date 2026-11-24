@@ -147,6 +147,8 @@ const EN = {
   "Huỷ phòng này?": "Cancel this room?",
   "Mã mời {0} sẽ không dùng được nữa.": "Invite code {0} will stop working.",
   "Rời phòng": "Leave room",
+  "Nhắc {0} lần nữa": "Nudge {0} again",
+  "Đã nhắc lúc {0} ✓": "Nudged at {0} ✓",
   "Huỷ phòng": "Cancel room",
   "Ở lại": "Stay",
   "Phòng {0}": "Room {0}",
@@ -356,7 +358,7 @@ function render() {
     out.push(bookCard(s));
     out.push(\`<div class="card"><h2>\${t("Hôm nay")}</h2><p>\${t("Bạn")}: \${st(s.me)}<br>\${P}: \${st(s.partner)}</p>
       <p class="muted">\${t("Mục tiêu của bạn: {0}% sách mỗi ngày", s.me.target_pct ?? "?")}\${s.same_book && !s.book ? " · " + t("hai bạn đọc cùng một cuốn") : ""}</p>\${bars()}
-      <button \${s.partner.done_today ? "disabled" : ""} onclick="act('nudge')">\${t("Nhắc {0} đọc", P)}</button></div>\`);
+      <button onclick="act('nudge')">\${s.partner.nudged ? t("Nhắc {0} lần nữa", P) : t("Nhắc {0} đọc", P)}</button>\${s.partner.nudged ? \` <span class="muted">\${t("Đã nhắc lúc {0} ✓", s.partner.nudged_at)}</span>\` : ""}</div>\`);
     const ext = sp.extension;
     out.push(\`<div class="card"><h2>\${t("Gia hạn sprint")}</h2>\${ext ? (ext.by_me ? \`<p>\${t("Bạn đã đề nghị +{0} ngày, chờ {1} đồng ý.", ext.days, P)}</p><button class="ghost" onclick="act('extend',{action:'cancel'})">\${t("Huỷ đề nghị")}</button>\`
       : \`<p>\${t("{0} đề nghị gia hạn +{1} ngày.", P, ext.days)}</p><button onclick="act('extend',{action:'accept'})">\${t("Đồng ý")}</button><button class="ghost" onclick="act('extend',{action:'decline'})">\${t("Từ chối")}</button>\`)
