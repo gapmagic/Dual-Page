@@ -94,12 +94,8 @@ export function renderScreen(s) {
   if (sp.extension && !sp.extension.by_me) {
     c.center(y, trim(c, L(`${s.partner.name} đề nghị gia hạn +${sp.extension.days} ngày`, `${s.partner.name} asks to extend +${sp.extension.days} days`), W - 2 * M), "body");
     y += 36;
-  } else if (!quote) {
-    // Always shown, so every device has the same layout: the goal is only known
-    // once this reader has opened the shared book.
-    c.center(y, s.me.target_pct
-      ? L(`Mục tiêu mỗi ngày: ${fmt(s.me.target_pct)}% sách`, `Daily goal: ${fmt(s.me.target_pct)}% of the book`)
-      : L("Mở sách chung để có mục tiêu mỗi ngày", "Open the shared book to get a daily goal"), "body");
+  } else if (!quote && s.me.target_pct) {
+    c.center(y, L(`Mục tiêu mỗi ngày: ${fmt(s.me.target_pct)}% sách`, `Daily goal: ${fmt(s.me.target_pct)}% of the book`), "body");
     y += 36;
   }
 
