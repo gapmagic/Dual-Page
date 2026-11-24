@@ -72,7 +72,7 @@ Menu chia thành 4 mục. Tên mục cho biết ngay có gì mới, ví dụ **H
 | Mục | Có gì |
 |---|---|
 | **Hôm nay** | Chuỗi đọc chung, bạn và bạn đọc đã đọc bao nhiêu hôm nay, nút nhắc đọc, lời nhắc nhận được |
-| **Câu hay** | Câu bạn đọc chia sẻ, câu bạn đang chia sẻ, chọn câu khác để chia sẻ |
+| **Câu hay** | Câu bạn đang chia sẻ, câu bạn đọc đang chia sẻ, và các câu bạn đọc đã chia sẻ trước đó |
 | **Sách chung** | Tên sách, file bạn đang đọc, tải sách chung về máy |
 | **Sprint và gia hạn** | Ngày thứ mấy, còn bao nhiêu ngày, mục tiêu mỗi ngày, đề nghị hoặc đồng ý gia hạn |
 
@@ -83,7 +83,7 @@ Menu chia thành 4 mục. Tên mục cho biết ngay có gì mới, ví dụ **H
 
 ---
 
-> **Dòng nào bấm được?** Trong menu Dual Page, dòng có dấu **»** ở đầu là nút bấm (nhắc đọc, chia sẻ câu, gia hạn, tải sách). Các dòng còn lại chỉ để xem. Trên XTeink, lỡ bấm vào dòng xem thì máy hiện "Tải về xong", không ảnh hưởng gì.
+> **Dòng nào bấm được?** Trong menu Dual Page, dòng có dấu **»** ở đầu là nút bấm (nhắc đọc, gia hạn, tải sách). Các dòng còn lại chỉ để xem. Trên XTeink, lỡ bấm vào dòng xem thì máy hiện "Tải về xong", không ảnh hưởng gì.
 
 ## 3. Cài cho Kindle, Kobo… (KOReader)
 
@@ -149,7 +149,7 @@ Không có Wi-Fi cũng không sao. Máy giữ lại và gửi khi có mạng.
 
 ## 5. Chia sẻ câu hay (highlight)
 
-Highlight trong sách chung được gửi về Dual Page. **Câu mới nhất tự hiện trên màn hình chờ của bạn đọc.** Câu dài tới **300 ký tự** (khoảng 2–3 câu) hiện đầy đủ, dài hơn thì được rút gọn. Câu càng dài thì chữ tự nhỏ lại cho vừa. Mỗi người chỉ giữ **3 highlight gần nhất** (câu mới highlight hoặc vừa chia sẻ lại). Câu cũ hơn tự bỏ đi.
+Highlight trong sách chung được gửi về Dual Page. **Câu mới nhất tự hiện trên màn hình chờ của bạn đọc.** Câu dài tới **300 ký tự** (khoảng 2–3 câu) hiện đầy đủ, dài hơn thì được rút gọn. Câu càng dài thì chữ tự nhỏ lại cho vừa. Mỗi người chỉ giữ **3 highlight gần nhất**, câu cũ hơn tự bỏ đi. Riêng các câu **đã chia sẻ** thì Dual Page lưu lại **10 câu gần nhất** của mỗi người để hai bạn đọc lại trong mục **Câu hay**.
 
 ### XTeink
 
@@ -174,10 +174,18 @@ Highlight như bình thường là câu tự gửi đi khi có Wi-Fi. Muốn chi
 
   *Nút Chia sẻ Dual Page trong bảng highlight của KOReader (minh họa).*
 
-### Chọn câu khác để chia sẻ
+### Xem lại câu đã chia sẻ
 
-- **Trên máy:** mở menu Dual Page → **Câu hay**, chọn một dòng **Chia sẻ: "…"**.
-- **Trên web:** mục **Câu hay chia sẻ cho nhau**, bấm **chia sẻ câu này**.
+Mở menu Dual Page → **Câu hay**. Câu đã chia sẻ là xong, không cần (và không thể) chia sẻ lại.
+
+- **Kindle/Kobo (KOReader):** hai phần, **Bạn chia sẻ với …** ở trên và **… chia sẻ với bạn** ở dưới. Mỗi phần hiện câu mới nhất và dòng **Xem N câu … trước đó ›** để mở danh sách các câu cũ. Bấm vào câu nào cũng hiện trọn câu.
+- **XTeink:** vừa một trang. Trên cùng là câu bạn đang chia sẻ, tiếp theo là câu bạn đọc đang chia sẻ, rồi **3 câu gần nhất** bạn đọc đã chia sẻ trước đó. Mỗi câu hiện tối đa 3 dòng.
+
+  <img src="guide/10b-cau-hay-tren-may.png" width="560" alt="Mục Câu hay trên Kindle và XTeink">
+
+  *Mục Câu hay trên Kindle (trái) và XTeink (phải), minh họa.*
+
+**Muốn chia sẻ một câu khác:** highlight câu mới trong sách chung (XTeink nhớ **Sync Progress**), hoặc trên web vào mục **Câu hay chia sẻ cho nhau** và bấm **chia sẻ câu này**.
 
   <img src="guide/08-cau-hay.png" width="360" alt="Câu hay chia sẻ cho nhau">
 
