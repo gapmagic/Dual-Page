@@ -55,6 +55,16 @@ There are only 2 people per room. No account needed: the website remembers your 
 6. Connect to Wi-Fi once, then restart the reader.
 7. On the plugin's settings page, tap **Turn on highlight sharing**. This points the reader's KOSync highlight sync at Dual Page.
 
+   **Or do it on the device:** open Dual Page → **Highlights**. Until sharing is on, it shows your device's 6-character code and the values to enter. Go to **Settings → CrossPoint Sync** and set:
+   - Server Type: **KoSync**
+   - Sync Server URL: **https://dualpage.online/kosync**
+   - Username: **the 6-character code** (any case)
+   - Password: **dualpage**
+   - Document Matching: **Binary**
+   - Sync Clippings: **On**
+
+   The setup rows hide after the first sync.
+
 **Open Dual Page on the reader:** Home → Plugins → **Dual Page**.
 
 The menu has 4 sections. Each title shows what's new, e.g. **Today · Sam nudged you to read!**

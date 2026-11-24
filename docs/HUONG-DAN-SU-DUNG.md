@@ -55,6 +55,16 @@ Phòng chỉ có 2 người. Không cần tài khoản: trang web nhớ phòng c
 6. Kết nối Wi-Fi một lần, rồi khởi động lại máy.
 7. Vào trang cài đặt của plugin Dual Page và bấm **Bật chia sẻ highlight**. Nút này cài đồng bộ highlight (KOSync) về Dual Page.
 
+   **Hoặc làm ngay trên máy:** mở Dual Page → mục **Câu hay**. Khi chưa bật, mục này hiện mã 6 ký tự của máy bạn và các dòng cần nhập. Vào **Settings → CrossPoint Sync** và nhập:
+   - Server Type: **KoSync**
+   - Sync Server URL: **https://dualpage.online/kosync**
+   - Username: **mã 6 ký tự** (viết hoa hay thường đều được)
+   - Password: **dualpage**
+   - Document Matching: **Binary**
+   - Sync Clippings: **On**
+
+   Sau lần đồng bộ đầu tiên, các dòng hướng dẫn tự ẩn.
+
 **Mở Dual Page trên máy:** Home → Plugins → **Dual Page**.
 
 Menu chia thành 4 mục. Tên mục cho biết ngay có gì mới, ví dụ **Hôm nay · Minh nhắc bạn đọc!**
