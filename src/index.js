@@ -185,7 +185,11 @@ async function api(req, env, url, route) {
       return json(await computeState(db, await loadMember(db, token)));
 
     case "extend":
-      return json(await extend(db, me, room, body.action, Number(body.days)));
+      try {
+        return json(await extend(db, me, room, body.action, Number(body.days)));
+      } catch (e) {
+        return bad(e.message);
+      }
 
     case "book/title": {
       if (room.start_ts) return bad("Sprint đã bắt đầu, không đổi sách chung được nữa");
@@ -276,10 +280,17 @@ async function addQuote(db, me, q, page) {
   if (!me.fav_quote) await db.prepare("UPDATE members SET fav_quote = ? WHERE id = ?").bind(r.meta.last_row_id, me.id).run();
 }
 
+const MAX_EXT = 30;
+// Reads "5", "+5", "5 ngày", "5 days" as 5; anything else is null.
+const parseDays = (q) => {
+  const m = String(q || "").trim().match(/^\+?\s*(\d{1,3})\s*(ngày|ngay|days?|d)?$/i);
+  return m ? Number(m[1]) : null;
+};
+
 async function extend(db, me, room, action, days) {
   if (!room.start_ts) throw new Error("Sprint chưa bắt đầu");
   if (action === "propose") {
-    if (![3, 7].includes(days)) throw new Error("Chỉ gia hạn +3 hoặc +7 ngày");
+    if (!Number.isInteger(days) || days < 1 || days > MAX_EXT) throw new Error(`Số ngày gia hạn phải từ 1 đến ${MAX_EXT}`);
     await db.prepare("UPDATE rooms SET ext_days = ?, ext_by = ? WHERE id = ?").bind(days, me.id, room.id).run();
   } else if (action === "accept") {
     if (!room.ext_days || room.ext_by === me.id) throw new Error("Không có đề nghị gia hạn nào từ bạn đọc");
@@ -360,7 +371,7 @@ async function device(req, env, url, rest) {
   if (action === "home") {
     const list = url.searchParams.get("list");
     if (url.searchParams.get("grouped")) {
-      const { s, sections } = await homeSections(db, me);
+      const { s, sections } = await homeSections(db, me, { ko: true });
       return json({ sections, updated: s.updated_label, lang: me.lang === "en" ? "en" : "vi" });
     }
     if (list) {
@@ -370,6 +381,18 @@ async function device(req, env, url, rest) {
       return json({ items: sec.items });
     }
     return json({ items: await homeItems(db, me) });
+  }
+  // CrossPoint's search box doubles as the number pad for a custom extension.
+  if (action === "search") {
+    const en = me.lang === "en";
+    const L = (vi, en2) => (en ? en2 : vi);
+    const st = await computeState(db, me);
+    const n = parseDays(url.searchParams.get("q"));
+    const ext = st.sprint && st.sprint.extension;
+    if (st.phase !== "active") return json({ items: [{ id: "info", title: L("Chỉ gia hạn được khi sprint đang chạy", "You can only extend during a sprint"), author: "" }] });
+    if (ext) return json({ items: [{ id: "info", title: L(`Đang có đề nghị gia hạn +${ext.days} ngày`, `An extension of +${ext.days} days is pending`), author: L("Mở mục Sprint và gia hạn để xem", "Open Sprint & extension to see it") }] });
+    if (!n || n > MAX_EXT) return json({ items: [{ id: "info", title: L(`Nhập số ngày muốn gia hạn (1–${MAX_EXT})`, `Type the number of days to extend (1–${MAX_EXT})`), author: L("Ví dụ: 5", "For example: 5") }] });
+    return json({ items: [{ id: `ext${n}.dp`, title: "» " + L(`Đề nghị gia hạn +${n} ngày`, `Propose +${n} days`), author: L(`${st.partner.name} cần đồng ý. Sprint sẽ dài ${st.sprint.total_days + n} ngày.`, `${st.partner.name} needs to agree. The sprint becomes ${st.sprint.total_days + n} days.`) }] });
   }
   if (action === "lists") {
     const { sections } = await homeSections(db, me);
@@ -396,8 +419,8 @@ async function device(req, env, url, rest) {
       } else if (id === "seen") {
         await db.prepare("UPDATE members SET nudged_ts = NULL WHERE id = ?").bind(me.id).run();
         msg = L("Đã xem lời nhắc.", "Marked as seen.");
-      } else if (id === "ext3" || id === "ext7") {
-        await extend(db, me, room, "propose", id === "ext3" ? 3 : 7);
+      } else if (/^ext\d+$/.test(id)) {
+        await extend(db, me, room, "propose", Number(id.slice(3)));
         msg = L("Đã gửi đề nghị gia hạn.", "Extension proposed.");
       } else if (id === "ext_yes") {
         await extend(db, me, room, "accept");
@@ -427,7 +450,7 @@ async function png(canvas, url) {
 // On-device menu, grouped into sections. CrossPoint shows each section as a list
 // (browse.lists_url + ?list=<id>); KOReader shows them as sub-menus (?grouped=1);
 // plain /home (older plugin installs) gets one list with section header rows.
-async function homeSections(db, me) {
+async function homeSections(db, me, opts = {}) {
   const s = await computeState(db, me);
   const L = (vi, en) => (me.lang === "en" ? en : vi);
   const P = s.partner && s.partner.name;
@@ -520,6 +543,8 @@ async function homeSections(db, me) {
   else {
     act("ext3", L("Đề nghị gia hạn +3 ngày", "Propose +3 days"), L("Cả hai phải đồng ý", "You both need to agree"));
     act("ext7", L("Đề nghị gia hạn +7 ngày", "Propose +7 days"), L("Cả hai phải đồng ý", "You both need to agree"));
+    if (opts.ko) cur.items.push({ id: "ext.ask", title: "» " + L("Đề nghị số ngày khác…", "Propose another number of days…"), author: L(`Nhập từ 1 đến ${MAX_EXT} ngày`, `Type 1 to ${MAX_EXT} days`) });
+    else info(L("Muốn số ngày khác?", "Another number of days?"), L("Bấm Tìm kiếm ở đầu trang, nhập số ngày (ví dụ 5)", "Tap Search at the top, type the number of days (e.g. 5)"));
   }
   return { s, sections };
 }

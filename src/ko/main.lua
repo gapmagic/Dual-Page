@@ -434,6 +434,8 @@ function DualPage:onItem(sec, id, title, sub)
             text = sub ~= "" and (title .. "\n\n" .. sub) or title,
             dismiss_callback = back,
         })
+    elseif id == "ext.ask" then
+        self:askExtension(sec)
     elseif id:match("%.dp$") then
         local res = request("GET", "act/" .. util.urlEncode(id))
         UIManager:show(InfoMessage:new{
@@ -444,6 +446,30 @@ function DualPage:onItem(sec, id, title, sub)
     else
         self:downloadBook(id)
     end
+end
+
+-- Custom extension: type a number of days, then send it like the +3/+7 rows.
+function DualPage:askExtension(sec)
+    local InputDialog = require("ui/widget/inputdialog")
+    local dialog
+    dialog = InputDialog:new{
+        title = L("Gia hạn thêm bao nhiêu ngày? (1–30)", "Extend by how many days? (1–30)"),
+        input_type = "number",
+        buttons = {{
+            { text = L("Huỷ", "Cancel"), id = "close", callback = function() UIManager:close(dialog) end },
+            { text = L("Đề nghị", "Propose"), is_enter_default = true, callback = function()
+                local n = tonumber(dialog:getInputText())
+                UIManager:close(dialog)
+                if not n or n < 1 or n > 30 or n ~= math.floor(n) then
+                    UIManager:show(InfoMessage:new{ text = L("Nhập số ngày từ 1 đến 30.", "Type a number from 1 to 30."), timeout = 3 })
+                    return
+                end
+                self:onItem(sec, "ext" .. n .. ".dp", "", "")
+            end },
+        }},
+    }
+    UIManager:show(dialog)
+    dialog:onShowKeyboard()
 end
 
 function DualPage:downloadBook(name)

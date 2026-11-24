@@ -17,6 +17,8 @@ export function pluginFiles(origin, token, lang = "vi") {
       lists_url: `${D}/lists`,
       lists_items: "lists",
       lists_fields: { title: "title", id: "id" },
+      // The search box is how a reader types a custom extension (number of days).
+      search: { url: `${D}/search?q={query}` },
     },
     download: {
       url: `${D}/act/{id_enc}`,
@@ -53,7 +55,7 @@ export function pluginFiles(origin, token, lang = "vi") {
   const manifest = {
     title: "Dual Page",
     description: en ? "Keep a shared reading streak with your partner" : "Giữ chuỗi đọc chung với bạn đọc",
-    version: "0.3.0",
+    version: "0.3.1",
     mount: "settings",
   };
   const config = { server: origin, token };

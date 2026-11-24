@@ -16,7 +16,7 @@
 |---|---|
 | **Phòng 2 người** | Người tạo phòng nhận mã mời dạng `XTE-XXX`. Phòng khoá khi đủ 2 người. |
 | **Sách chung** | Khi tạo phòng, người tạo nhập tên sách và/hoặc tải file epub lên (tối đa 24 MB). Bạn đọc tải đúng file đó về máy từ menu Dual Page. Chỉ sách chung được tính vào tiến độ. Đọc sách riêng vẫn thoải mái, chỉ không được tính. |
-| **Sprint** | Người tạo chọn 7, 14, 21, 30 ngày hoặc số ngày tuỳ ý, người kia bấm đồng ý. Gia hạn +3 hoặc +7 ngày khi cả hai cùng đồng ý. |
+| **Sprint** | Người tạo chọn 7, 14, 21, 30 ngày hoặc số ngày tuỳ ý, người kia bấm đồng ý. Gia hạn +3, +7 hoặc số ngày tuỳ chọn (1–30) khi cả hai cùng đồng ý. |
 | **Duo Streak** | Một ngày được tính khi **cả hai** cùng đọc, theo múi giờ của từng người. Mục tiêu mỗi ngày được tính tự động từ phần sách còn lại và số ngày còn lại. |
 | **Tiến độ tự động** | Máy tự gửi tiến độ sau mỗi phiên đọc. Không cần nhập tay. Sách được nhận diện qua tên file hoặc mã KOSync (partial MD5). |
 | **Chia sẻ highlight** | Highlight trên máy được đồng bộ về Dual Page. Câu mới nhất tự hiện trên màn hình chờ của bạn kia, hoặc chọn câu khác trong menu hay trên web. Giới hạn **140 ký tự**, câu dài hơn được rút gọn. |
