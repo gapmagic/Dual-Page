@@ -62,3 +62,11 @@ CREATE TABLE IF NOT EXISTS highlights (
   PRIMARY KEY (member_id, clip_id)
 );
 CREATE INDEX IF NOT EXISTS highlights_member ON highlights(member_id, share_ts);
+-- KOSync reading positions (per reader and document), for pulling a re-downloaded book back to its page.
+CREATE TABLE IF NOT EXISTS kosync (
+  member_id TEXT NOT NULL,
+  document TEXT NOT NULL,
+  data TEXT NOT NULL,
+  updated_at INTEGER NOT NULL,
+  PRIMARY KEY (member_id, document)
+);

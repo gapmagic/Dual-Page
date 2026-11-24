@@ -616,13 +616,14 @@ async function kosync(req, env, url, route) {
     const ts = now();
     if (me && /^[0-9a-f]{32}$/.test(doc)) {
       const rec = { document: doc, progress: String(b.progress || ""), percentage: Number(b.percentage) || 0, device: String(b.device || ""), device_id: String(b.device_id || ""), timestamp: ts };
-      await env.BOOKS.put(`kosync:${me.id}:${doc}`, JSON.stringify(rec));
+      await db.prepare("INSERT INTO kosync (member_id, document, data, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(member_id, document) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at").bind(me.id, doc, JSON.stringify(rec), ts).run();
     }
     return kj({ document: doc, timestamp: ts });
   }
   if (route.startsWith("syncs/progress/")) {
     const doc = route.slice("syncs/progress/".length);
-    const rec = me && /^[0-9a-f]{32}$/.test(doc) ? await env.BOOKS.get(`kosync:${me.id}:${doc}`, "json") : null;
+    const row = me && /^[0-9a-f]{32}$/.test(doc) ? await db.prepare("SELECT data FROM kosync WHERE member_id = ? AND document = ?").bind(me.id, doc).first() : null;
+    const rec = row ? JSON.parse(row.data) : null;
     return rec ? kj(rec) : kj({}, 404);
   }
 
