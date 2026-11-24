@@ -146,7 +146,7 @@ export async function computeState(db, me) {
     for (const r of shareRows) {
       if (r.member_id !== m.id || seen.has(r.clip_id)) continue;
       seen.add(r.clip_id);
-      out.push({ sid: r.id, id: r.clip_id, text: shortQuote(r.text), chapter: r.chapter || null, at: r.ts, when: whenLabel(r.ts, me.tz, t, me.lang === "en") });
+      out.push({ id: r.clip_id, text: shortQuote(r.text), chapter: r.chapter || null, at: r.ts, when: whenLabel(r.ts, me.tz, t, me.lang === "en") });
     }
     return out.slice(0, SHARE_KEEP);
   };

@@ -540,46 +540,20 @@ local function quoteRow(q, extra)
     return "“" .. text .. "”" .. (meta ~= "" and ("\n" .. meta) or "")
 end
 
--- Full quote in a popup. With reshare, offers to share it again.
-function DualPage:showQuote(title, q, reshare)
+-- Full quote in a popup.
+function DualPage:showQuote(title, q)
     local text = title .. "\n\n“" .. tostring(q.text or "") .. "”"
     local meta = quoteMeta(q)
     if meta ~= "" then text = text .. "\n\n" .. meta end
-    if reshare and q.sid then
-        UIManager:show(ConfirmBox:new{
-            text = text,
-            ok_text = L("Chia sẻ lại", "Share again"),
-            cancel_text = L("Đóng", "Close"),
-            ok_callback = function() self:reshare(q.sid) end,
-        })
-    else
-        UIManager:show(InfoMessage:new{ text = text })
-    end
+    UIManager:show(InfoMessage:new{ text = text })
 end
 
-function DualPage:reshare(sid)
-    NetworkMgr:runWhenOnline(function()
-        local res = request("GET", "act/" .. util.urlEncode("reshare-" .. tostring(sid) .. ".dp"))
-        UIManager:show(InfoMessage:new{
-            text = res and util.trim(res) or L("Không gửi được, thử lại sau.", "Couldn't send, try again later."),
-            timeout = 3,
-        })
-        if res then
-            self:refreshScreen()
-            -- Reopen the section so "You shared with" shows the quote just shared.
-            for _, m in ipairs(self.open_menus or {}) do UIManager:close(m) end
-            self.open_menus = {}
-            self:showHome("quotes", true)
-        end
-    end)
-end
-
-function DualPage:historyMenu(title, list, popup_title, reshare)
+function DualPage:historyMenu(title, list, popup_title)
     local items = {}
     for _, q in ipairs(list or {}) do
         table.insert(items, {
             text = quoteRow(q),
-            callback = function() self:showQuote(popup_title, q, reshare) end,
+            callback = function() self:showQuote(popup_title, q) end,
         })
     end
     self:openMenu(title, items, 5)
@@ -609,7 +583,7 @@ function DualPage:quoteItems(sec)
             text = L("Xem " .. #ph .. " câu " .. P .. " chia sẻ trước đó", "See " .. #ph .. " earlier quotes from " .. P),
             mandatory = "›",
             callback = function()
-                self:historyMenu(L(P .. " đã chia sẻ", P .. " shared"), ph, L(P .. " đã chia sẻ", P .. " shared"), false)
+                self:historyMenu(L(P .. " đã chia sẻ", P .. " shared"), ph, L(P .. " đã chia sẻ", P .. " shared"))
             end,
         })
     end
@@ -634,7 +608,7 @@ function DualPage:quoteItems(sec)
             text = L("Xem " .. #mh .. " câu bạn chia sẻ trước đó", "See your " .. #mh .. " earlier quotes"),
             mandatory = "›",
             callback = function()
-                self:historyMenu(L("Bạn đã chia sẻ", "You shared"), mh, L("Bạn đã chia sẻ", "You shared"), true)
+                self:historyMenu(L("Bạn đã chia sẻ", "You shared"), mh, L("Bạn đã chia sẻ", "You shared"))
             end,
         })
     end
@@ -659,7 +633,7 @@ end
 
 -- Main screen: one row per section ("Hôm nay · Minh nhắc bạn đọc!", "Câu hay"...).
 -- open_id opens that section directly (after an action).
-function DualPage:showHome(open_id, with_home)
+function DualPage:showHome(open_id)
     NetworkMgr:runWhenOnline(function()
         UIManager:nextTick(function() self:checkUpdate(true) end)
         -- Send what was just read first, so the status is current.
@@ -693,7 +667,6 @@ function DualPage:showHome(open_id, with_home)
         })
         self.home_rows = rows
         if type(open_id) == "table" then
-            if with_home then self:openMenu("Dual Page", rows) end
             self:openMenu("Dual Page · " .. tostring(open_id.title or ""), self:sectionItems(open_id))
         else
             self:openMenu("Dual Page", rows)
