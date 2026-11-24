@@ -116,6 +116,9 @@ const EN = {
   "Đề nghị": "Propose",
   "Số ngày gia hạn phải từ 1 đến 30": "Extensions must be 1 to 30 days",
   "Máy đọc": "Your reader",
+  "Có bản plugin mới? Tải lại rồi chép đè lên bản cũ:": "New plugin version? Download it again and copy it over the old one:",
+  "Tải lại plugin XTeink": "Download XTeink plugin again",
+  "Tải lại plugin KOReader": "Download KOReader plugin again",
   "Máy đọc của bạn đã nối với phòng này ✓": "Your reader is connected to this room ✓",
   "Plugin chỉ cài một lần. Khi tạo hoặc tham gia phòng mới trên trình duyệt này, máy tự chuyển sang phòng mới.": "Install the plugin once. When you create or join a new room in this browser, your reader switches over automatically.",
   "Hai bạn dùng máy khác nhau vẫn vào chung một phòng được. Chọn đúng loại máy của bạn:": "You can share a room even with different e-readers. Pick yours:",
@@ -323,7 +326,7 @@ function render() {
   if (s.phase === "active" || s.phase === "recap") out.push(highlightCard(s));
   const linked = s.devices > 0;
   out.push(\`<div class="card"><h2>\${t("Máy đọc")}</h2>
-    \${linked ? \`<p class="ok">\${t("Máy đọc của bạn đã nối với phòng này ✓")}</p><p class="muted">\${t("Plugin chỉ cài một lần. Khi tạo hoặc tham gia phòng mới trên trình duyệt này, máy tự chuyển sang phòng mới.")}</p>\` : \`<p class="muted">\${t("Hai bạn dùng máy khác nhau vẫn vào chung một phòng được. Chọn đúng loại máy của bạn:")}</p>\`}
+    \${linked ? \`<p class="ok">\${t("Máy đọc của bạn đã nối với phòng này ✓")}</p><p class="muted">\${t("Plugin chỉ cài một lần. Khi tạo hoặc tham gia phòng mới trên trình duyệt này, máy tự chuyển sang phòng mới.")}</p><p class="muted">\${t("Có bản plugin mới? Tải lại rồi chép đè lên bản cũ:")}</p><button class="ghost" onclick="getPlugin('xt')">\${t("Tải lại plugin XTeink")}</button><button class="ghost" onclick="getPlugin('ko')">\${t("Tải lại plugin KOReader")}</button>\` : \`<p class="muted">\${t("Hai bạn dùng máy khác nhau vẫn vào chung một phòng được. Chọn đúng loại máy của bạn:")}</p>\`}
     <details\${linked ? "" : " open"}><summary><b>\${t("XTeink (CrossPoint 2.0 trở lên)")}</b></summary><ol><li><button onclick="getPlugin('xt')">\${t("Tải plugin cho XTeink")}</button></li>
     <li>\${t("Giải nén, chép thư mục <b>dualpage</b> vào thư mục <b>plugins</b> ở gốc thẻ SD.")}</li>
     <li>\${t("Settings → Connectivity → Plugins: Enabled. Settings → Sleep Screen: Custom.")}</li>
