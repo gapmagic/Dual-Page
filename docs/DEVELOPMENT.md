@@ -4,7 +4,7 @@
 
 ```
 src/index.js    Router: trang web (/), API (/api/*), endpoint thiết bị (/d/<token>/*), KOSync (/kosync/*)
-src/logic.js    Streak, sprint, mục tiêu ngày, nhận diện sách chung, partial MD5, rút gọn câu 140 ký tự
+src/logic.js    Streak, sprint, mục tiêu ngày, nhận diện sách chung, partial MD5, rút gọn câu 300 ký tự
 src/screen.js   Bố cục màn hình chờ (đang đọc, chờ, tổng kết, chưa vào phòng)
 src/bmp.js      Canvas 1-bit và xuất BMP
 src/font.js     Font glyph sinh từ DejaVu (tools/gen_font.py), có đủ dấu tiếng Việt

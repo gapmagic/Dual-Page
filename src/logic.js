@@ -343,7 +343,7 @@ export async function partialMd5(bytes) {
   return [...new Uint8Array(h)].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 
-export const QUOTE_MAX = 140;
+export const QUOTE_MAX = 300;
 // Shared highlights are capped so they fit the partner's sleep screen.
 export function shortQuote(text, max = QUOTE_MAX) {
   const t = String(text || "").replace(/\s+/g, " ").trim();

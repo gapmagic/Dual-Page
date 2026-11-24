@@ -149,7 +149,7 @@ Không có Wi-Fi cũng không sao. Máy giữ lại và gửi khi có mạng.
 
 ## 5. Chia sẻ câu hay (highlight)
 
-Highlight trong sách chung được gửi về Dual Page. **Câu mới nhất tự hiện trên màn hình chờ của bạn đọc.** Câu dài hơn 140 ký tự được rút gọn cho vừa màn hình. Mỗi người chỉ giữ **3 highlight gần nhất** (câu mới highlight hoặc vừa chia sẻ lại). Câu cũ hơn tự bỏ đi.
+Highlight trong sách chung được gửi về Dual Page. **Câu mới nhất tự hiện trên màn hình chờ của bạn đọc.** Câu dài tới **300 ký tự** (khoảng 2–3 câu) hiện đầy đủ, dài hơn thì được rút gọn. Câu càng dài thì chữ tự nhỏ lại cho vừa. Mỗi người chỉ giữ **3 highlight gần nhất** (câu mới highlight hoặc vừa chia sẻ lại). Câu cũ hơn tự bỏ đi.
 
 ### XTeink
 

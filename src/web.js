@@ -73,7 +73,7 @@ const EN = {
   "Câu hay chia sẻ cho nhau": "Shared highlights",
   "{0} chia sẻ:": "{0} shared:",
   "{0} chưa chia sẻ câu nào.": "{0} hasn't shared a highlight yet.",
-  "Highlight câu hay trong sách chung trên máy đọc. Khi máy ngủ, câu mới nhất của bạn tự hiện trên màn hình chờ của {0} (tối đa 140 ký tự). Muốn chia sẻ câu khác thì chọn bên dưới hoặc trong menu Dual Page trên máy.": "Highlight lines in the shared book on your reader. Your newest highlight shows up on {0}'s sleep screen (up to 140 characters). To share a different one, pick it below or in the Dual Page menu on your reader.",
+  "Highlight câu hay trong sách chung trên máy đọc. Khi máy ngủ, câu mới nhất của bạn tự hiện trên màn hình chờ của {0} (tối đa 300 ký tự). Muốn chia sẻ câu khác thì chọn bên dưới hoặc trong menu Dual Page trên máy.": "Highlight lines in the shared book on your reader. Your newest highlight shows up on {0}'s sleep screen (up to 300 characters). To share a different one, pick it below or in the Dual Page menu on your reader.",
   "Câu bạn đã highlight": "Your highlights",
   "Chưa thấy câu highlight nào? Bật chia sẻ highlight trên máy": "No highlights yet? Turn on highlight sharing on your reader",
   "XTeink: Settings → File Transfer, kết nối cùng Wi-Fi với điện thoại.": "XTeink: Settings → File Transfer, on the same Wi-Fi as your phone.",
@@ -289,7 +289,7 @@ function highlightCard(s) {
     \${m.shared && m.shared.id === h.id ? \`<span class="ok"> ✓ \${t("đang hiện bên {0}", esc(p.name))}</span>\` : \` <a href="#" onclick="act('share',{id:'\${esc(h.id)}'});return false">\${t("chia sẻ câu này")}</a>\`}</div>\`).join("");
   return \`<div class="card"><h2>\${t("Câu hay chia sẻ cho nhau")}</h2>
     \${p.shared ? \`<p><b>\${t("{0} chia sẻ:", esc(p.name))}</b></p><div class="q fav big-q">“\${esc(p.shared.text)}”</div>\` : \`<p class="muted">\${t("{0} chưa chia sẻ câu nào.", esc(p.name))}</p>\`}
-    <p class="muted">\${t("Highlight câu hay trong sách chung trên máy đọc. Khi máy ngủ, câu mới nhất của bạn tự hiện trên màn hình chờ của {0} (tối đa 140 ký tự). Muốn chia sẻ câu khác thì chọn bên dưới hoặc trong menu Dual Page trên máy.", esc(p.name))}</p>
+    <p class="muted">\${t("Highlight câu hay trong sách chung trên máy đọc. Khi máy ngủ, câu mới nhất của bạn tự hiện trên màn hình chờ của {0} (tối đa 300 ký tự). Muốn chia sẻ câu khác thì chọn bên dưới hoặc trong menu Dual Page trên máy.", esc(p.name))}</p>
     \${mine ? \`<p><b>\${t("Câu bạn đã highlight")}</b></p>\${mine}\` : \`<details><summary>\${t("Chưa thấy câu highlight nào? Bật chia sẻ highlight trên máy")}</summary><ol>
       <li>\${t("XTeink: Settings → File Transfer, kết nối cùng Wi-Fi với điện thoại.")}</li>
       <li>\${t("Mở địa chỉ máy hiện trên màn hình (ví dụ crosspoint.local) bằng trình duyệt điện thoại, vào trang Plugins.")}</li>

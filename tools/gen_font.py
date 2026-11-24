@@ -7,6 +7,8 @@ chars = "".join(dict.fromkeys(chars))
 sets = {
   "body": ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 26, chars),
   "bold": ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 30, chars),
+  "small": ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22, chars),
+  "tiny": ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 19, chars),
   "big":  ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 140, "0123456789"),
 }
 out = {}

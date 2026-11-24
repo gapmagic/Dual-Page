@@ -14,7 +14,7 @@ function statusLine(p) {
   return L("chưa đọc hôm nay", "not read today");
 }
 
-export function renderScreen(s) {
+export function renderScreen(s, tight = false) {
   EN = s.me && s.me.lang === "en";
   const c = new Canvas();
   c.band = 64; // header band height, extended to the full width on wider screens
@@ -82,8 +82,9 @@ export function renderScreen(s) {
     const ptw = c.textWidth(pt, "bold");
     c.text(M, y, trim(c, `${label}: ${statusLine(p)}`, W - 2 * M - ptw - 12), "body");
     c.text(W - M - ptw, y - 2, pt, "bold");
-    c.bar(M, y + 34, W - 2 * M, 22, p.progress / 100);
-    y += compact ? 68 : 80;
+    // tight: a long shared quote needs the room, so the bars go.
+    if (!tight) c.bar(M, y + 34, W - 2 * M, 22, p.progress / 100);
+    y += tight ? 42 : compact ? 68 : 80;
   }
 
   // sprint line
@@ -105,9 +106,17 @@ export function renderScreen(s) {
   if (quote) {
     y += 6;
     const boxTop = y;
-    const maxLines = Math.max(1, Math.floor((744 - y - 46) / c.lineHeight("body")));
     c.text(M + 6, y + 8, trim(c, L(`${s.partner.name} chia sẻ:`, `${s.partner.name} shared:`), W - 2 * M - 12), "bold");
-    const end = c.wrap(M + 6, y + 46, `“${quote.text}”`, W - 2 * M - 12, "body", maxLines);
+    // Largest font that fits the whole quote in the space left; long quotes get smaller text.
+    const qt = `“${quote.text}”`, qw = W - 2 * M - 12, room = 744 - y - 46;
+    let font = null;
+    for (const f of ["body", "small", "tiny"]) {
+      if (c.countLines(qt, qw, f) * c.lineHeight(f) <= room) { font = f; break; }
+    }
+    if (!font && !tight) return renderScreen(s, true);
+    font = font || "tiny";
+    const maxLines = Math.max(1, Math.floor(room / c.lineHeight(font)));
+    const end = c.wrap(M + 6, y + 46, qt, qw, font, maxLines);
     c.frame(M - 8, boxTop, W - 2 * (M - 8), end - boxTop + 8, 2);
   }
   footer(c, s);

@@ -62,6 +62,16 @@ export class Canvas {
   center(y, str, font = "body", v = 1) {
     this.text(Math.round((W - this.textWidth(str, font)) / 2), y, str, font, v);
   }
+  // How many lines wrap() would use for str.
+  countLines(str, maxW, font = "body") {
+    const words = str.normalize("NFC").split(/\s+/).filter(Boolean);
+    let line = "", n = 0;
+    for (const w of words) {
+      const t = line ? line + " " + w : w;
+      if (this.textWidth(t, font) > maxW && line) { n++; line = w; } else line = t;
+    }
+    return n + (line ? 1 : 0);
+  }
   // Word-wraps into lines no wider than maxW; returns the y after the last line.
   wrap(x, y, str, maxW, font = "body", maxLines = 99, v = 1) {
     const words = str.normalize("NFC").split(/\s+/).filter(Boolean);
@@ -70,7 +80,10 @@ export class Canvas {
     const lh = this.lineHeight(font);
     const flush = (last) => {
       let s = line;
-      if (!last && n === maxLines - 1) s = s + "…";
+      if (!last && n === maxLines - 1) {
+        while (s.includes(" ") && this.textWidth(s + "…", font) > maxW) s = s.slice(0, s.lastIndexOf(" "));
+        s = s + "…";
+      }
       this.text(x, y, s, font, v);
       y += lh;
       n++;

@@ -144,7 +144,7 @@ No Wi-Fi? No problem. The reader keeps the data and sends it when it's back onli
 
 ## 5. Sharing highlights
 
-Highlights in the shared book are sent to Dual Page. **Your newest highlight automatically appears on your partner's sleep screen.** Lines longer than 140 characters are shortened to fit. Each reader keeps only their **3 latest highlights** (newly highlighted or re-shared). Older ones are dropped automatically.
+Highlights in the shared book are sent to Dual Page. **Your newest highlight automatically appears on your partner's sleep screen.** Quotes up to **300 characters** (about 2–3 sentences) show in full; longer ones are shortened. Long quotes use smaller text so they fit. Each reader keeps only their **3 latest highlights** (newly highlighted or re-shared). Older ones are dropped automatically.
 
 ### XTeink
 
