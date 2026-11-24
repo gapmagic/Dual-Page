@@ -397,6 +397,12 @@ async function device(req, env, url, rest) {
   // KOReader: where this reader got to in the shared book, so a re-downloaded
   // copy (whose on-device position was lost with the old file) can jump back.
   if (action === "ko/version") return text(KO_VERSION);
+  // KOReader polls this every few minutes while awake: is there a new nudge?
+  if (action === "ping") {
+    const live = me.nudged_ts && now() - me.nudged_ts < 12 * 3600;
+    const p = live ? await db.prepare("SELECT name FROM members WHERE room_id = ? AND id != ?").bind(me.room_id, me.id).first() : null;
+    return json({ nudge: live ? { at: me.nudged_ts, from: p ? p.name : "" } : null });
+  }
   if (action === "ko/main.lua") return new Response(KO_MAIN, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
 
   if (action === "resume") {

@@ -104,6 +104,7 @@ function DualPage:init()
     self.store = LuaSettings:open(self.dir .. "/state.lua")
     self.ui.menu:registerToMainMenu(self)
     self:onDispatcherRegisterActions()
+    self:startPolling()
     if self.ui.highlight then
         self.ui.highlight:addToHighlightDialog("12_dualpage_share", function(this)
             return {
@@ -364,6 +365,39 @@ end
 
 function DualPage:screenFile()
     return self.screen_dir .. "/dualpage.png"
+end
+
+-- While the device is awake and online: every few minutes, check for a nudge
+-- (shown as a popup right away) and keep the sleep image current, so a nudge
+-- or the partner's progress is on the next sleep screen.
+local POLL_EVERY = 180
+function DualPage:startPolling()
+    if self.poll_task then return end
+    self.poll_task = function()
+        if NetworkMgr:isConnected() then self:poll() end
+        UIManager:scheduleIn(POLL_EVERY, self.poll_task)
+    end
+    UIManager:scheduleIn(20, self.poll_task)
+end
+
+function DualPage:poll()
+    local res = request("GET", "ping")
+    local ok, data = pcall(json.decode, res or "")
+    if not (ok and type(data) == "table") then return end
+    local n = type(data.nudge) == "table" and data.nudge or nil
+    if n and tonumber(n.at) and tonumber(n.at) ~= self.store:readSetting("nudge_seen") then
+        self.store:saveSetting("nudge_seen", tonumber(n.at))
+        self.store:flush()
+        UIManager:show(InfoMessage:new{
+            text = L(tostring(n.from or "") .. " nhắc: Đọc thôi nào!", tostring(n.from or "") .. ": time to read!"),
+            timeout = 8,
+        })
+    end
+    self:refreshScreen()
+end
+
+function DualPage:onCloseWidget()
+    if self.poll_task then UIManager:unschedule(self.poll_task) end
 end
 
 function DualPage:refreshScreen()
