@@ -70,16 +70,6 @@ There are only 2 people per room. No account needed: the website remembers your 
 
    *Illustrations only; your reader's address will differ.*
 
-   **Or do it on the device:** open Dual Page → **Highlights**. Until sharing is on, it shows your device's 6-character code and the values to enter. Go to **Settings → CrossPoint Sync** and set:
-   - Server Type: **KoSync**
-   - Sync Server URL: **https://dualpage.online/kosync**
-   - Username: **the 6-character code** (any case)
-   - Password: **dualpage**
-   - Document Matching: **Binary**
-   - Sync Clippings: **On**
-
-   The setup rows hide after the first sync.
-
 **Open Dual Page on the reader:** Home → Plugins → **Dual Page**.
 
 The menu has 4 sections. Each title shows what's new, e.g. **Today · Sam nudged you to read!**
@@ -163,7 +153,7 @@ Highlights in the shared book are sent to Dual Page. **Your newest highlight aut
 
 ### XTeink
 
-**Turn it on once:** do step 7 of the XTeink setup (the **Turn on highlight sharing** button on the reader's web page, or enter the values shown under Dual Page → **Highlights** in **Settings → CrossPoint Sync**).
+**Turn it on once:** do step 7 of the XTeink setup (the **Turn on highlight sharing** button on the reader's web page).
 
 **Highlight:**
 - **X4:** press **Confirm** (2nd button from the left on the front row) to open the in-book menu → **Create Clipping**. Use Left/Right to pick the first word, press Confirm, pick the last word, press Confirm again.

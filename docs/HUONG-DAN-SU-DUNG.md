@@ -70,16 +70,6 @@ Phòng chỉ có 2 người. Không cần tài khoản: trang web nhớ phòng c
 
    *Ảnh minh họa, địa chỉ trên máy bạn sẽ khác.*
 
-   **Hoặc làm ngay trên máy:** mở Dual Page → mục **Câu hay**. Khi chưa bật, mục này hiện mã 6 ký tự của máy bạn và các dòng cần nhập. Vào **Settings → CrossPoint Sync** và nhập:
-   - Server Type: **KoSync**
-   - Sync Server URL: **https://dualpage.online/kosync**
-   - Username: **mã 6 ký tự** (viết hoa hay thường đều được)
-   - Password: **dualpage**
-   - Document Matching: **Binary**
-   - Sync Clippings: **On**
-
-   Sau lần đồng bộ đầu tiên, các dòng hướng dẫn tự ẩn.
-
 **Mở Dual Page trên máy:** Home → Plugins → **Dual Page**.
 
 Menu chia thành 4 mục. Tên mục cho biết ngay có gì mới, ví dụ **Hôm nay · Minh nhắc bạn đọc!**
@@ -168,7 +158,7 @@ Highlight trong sách chung được gửi về Dual Page. **Câu mới nhất t
 
 ### XTeink
 
-**Bật một lần:** làm bước 7 ở phần cài đặt XTeink (nút **Bật chia sẻ highlight** trên trang web của máy, hoặc tự nhập trong **Settings → CrossPoint Sync** theo các dòng hiện ở mục **Câu hay** của Dual Page).
+**Bật một lần:** làm bước 7 ở phần cài đặt XTeink (nút **Bật chia sẻ highlight** trên trang web của máy).
 
 **Highlight:**
 - **X4:** bấm nút **Confirm** (nút thứ 2 từ trái ở hàng nút mặt trước) để mở menu trong sách → **Create Clipping**. Dùng Left/Right chọn chữ đầu, bấm Confirm, chọn chữ cuối, bấm Confirm lần nữa.
