@@ -70,3 +70,15 @@ CREATE TABLE IF NOT EXISTS kosync (
   updated_at INTEGER NOT NULL,
   PRIMARY KEY (member_id, document)
 );
+-- Every quote that became a reader's shared quote (newest shown to the partner),
+-- kept for the history in the Highlights menu even after the highlight is trimmed.
+CREATE TABLE IF NOT EXISTS shares (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  room_id TEXT NOT NULL,
+  member_id TEXT NOT NULL,
+  clip_id TEXT NOT NULL,
+  text TEXT NOT NULL,
+  chapter TEXT,
+  ts INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS shares_room ON shares(room_id, id);

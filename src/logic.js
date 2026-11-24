@@ -1,6 +1,7 @@
 // Room state: streaks, daily targets, sprint phases, progress ingestion.
 export const FULL = 10000; // progress in basis points
 const DAY = 86400;
+export const SHARE_KEEP = 10; // shared quotes kept per reader and room (history in the Highlights menu)
 
 const fmtCache = {};
 export function localDay(ts, tz) {
@@ -19,6 +20,15 @@ export function localTime(ts, tz) {
   } catch {
     return new Date(ts * 1000).toISOString().slice(11, 16);
   }
+}
+// "Hôm nay 08:12" / "Hôm qua 21:40" / "22/11" in the viewer's time zone.
+export function whenLabel(ts, tz, t = now(), en = false) {
+  if (!ts) return "";
+  const d = localDay(ts, tz);
+  const today = localDay(t, tz);
+  if (d === today) return (en ? "Today " : "Hôm nay ") + localTime(ts, tz);
+  if (d === addDays(today, -1)) return (en ? "Yesterday " : "Hôm qua ") + localTime(ts, tz);
+  return `${d.slice(8, 10)}/${d.slice(5, 7)}`;
 }
 export function addDays(day, n) {
   const [y, m, d] = day.split("-").map(Number);
@@ -107,6 +117,39 @@ export async function computeState(db, me) {
     const docs = docsFor(m);
     return hl.filter((h) => h.member_id === m.id && docs.has(h.doc));
   };
+  // Share history (newest SHARE_KEEP per reader): log each reader's current shared quote when it changes.
+  const { results: shareRows } = await db
+    .prepare("SELECT * FROM shares WHERE room_id = ? ORDER BY id DESC LIMIT 40")
+    .bind(room.id)
+    .all();
+  for (const m of members) {
+    const h = hlFor(m)[0];
+    if (!h) continue;
+    const last = shareRows.find((r) => r.member_id === m.id);
+    if (last && last.clip_id === h.clip_id) continue;
+    const ts = h.share_ts || t;
+    const r = await db
+      .prepare("INSERT INTO shares (room_id, member_id, clip_id, text, chapter, ts) VALUES (?, ?, ?, ?, ?, ?)")
+      .bind(room.id, m.id, h.clip_id, shortQuote(h.text), h.chapter || null, ts)
+      .run();
+    // Keep each reader's SHARE_KEEP latest shared quotes in this room.
+    await db
+      .prepare("DELETE FROM shares WHERE member_id = ? AND room_id = ? AND id NOT IN (SELECT id FROM shares WHERE member_id = ? AND room_id = ? ORDER BY id DESC LIMIT ?)")
+      .bind(m.id, room.id, m.id, room.id, SHARE_KEEP)
+      .run();
+    shareRows.unshift({ id: r.meta.last_row_id, room_id: room.id, member_id: m.id, clip_id: h.clip_id, text: shortQuote(h.text), chapter: h.chapter, ts });
+  }
+  // Earlier shared quotes of one reader, newest first, one entry per quote.
+  const historyFor = (m, current) => {
+    const seen = new Set(current ? [current.clip_id] : []);
+    const out = [];
+    for (const r of shareRows) {
+      if (r.member_id !== m.id || seen.has(r.clip_id)) continue;
+      seen.add(r.clip_id);
+      out.push({ sid: r.id, id: r.clip_id, text: shortQuote(r.text), chapter: r.chapter || null, at: r.ts, when: whenLabel(r.ts, me.tz, t, me.lang === "en") });
+    }
+    return out.slice(0, SHARE_KEEP);
+  };
   const today = localDay(t, me.tz);
   const view = (m) => {
     const d = memberDays(m, daily.filter((r) => r.member_id === m.id), room);
@@ -136,8 +179,9 @@ export async function computeState(db, me) {
         fav_quote: m.fav_quote,
         shared: (() => {
           const h = hlFor(m)[0];
-          return h ? { id: h.clip_id, text: shortQuote(h.text), at: h.share_ts } : null;
+          return h ? { id: h.clip_id, text: shortQuote(h.text), chapter: h.chapter || null, at: h.share_ts, when: whenLabel(h.share_ts, me.tz, t, me.lang === "en") } : null;
         })(),
+        shared_history: historyFor(m, hlFor(m)[0]),
         highlights: hlFor(m)
           .slice(0, 3)
           .map((h) => ({ id: h.clip_id, text: shortQuote(h.text), chapter: h.chapter })),
