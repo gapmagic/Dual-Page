@@ -574,7 +574,10 @@ async function homeSections(db, me, opts = {}) {
     L(`Chuỗi đọc chung: ${s.streak} ngày`, `Reading streak: ${s.streak} days`),
     L("Bạn: ", "You: ") + st(s.me) + ` (${s.me.progress}%). ${P}: ${st(s.partner)} (${s.partner.progress}%).`
   );
-  if (!s.partner.done_today) act("nudge", L(`Nhắc ${P} đọc`, `Nudge ${P} to read`), L("Lời nhắc hiện trên màn hình chờ của bạn ấy", "Shows on their sleep screen"));
+  // On XTeink a button shows the firmware's "Downloading… / Download complete"
+  // screen with this title under it, so the title reads as what is happening.
+  if (s.partner.nudged) info(L(`Đã nhắc ${P} ✓`, `${P} was nudged ✓`), L(`Lời nhắc đang hiện trên màn hình chờ của ${P}.`, `It's showing on ${P}'s sleep screen.`));
+  else if (!s.partner.done_today) act("nudge", L(`Gửi lời nhắc cho ${P}`, `Send ${P} a nudge`), L(`Lời nhắc hiện trên màn hình chờ của ${P}. Thấy "Tải về xong" là đã gửi.`, `Shows on ${P}'s sleep screen. "Download complete" means it was sent.`));
 
   const others = s.me.highlights.filter((h) => !s.me.shared || h.id !== s.me.shared.id).slice(0, 6);
   section("quotes", L("Câu hay", "Highlights"), s.partner.shared ? L(`${P} đang chia sẻ một câu`, `${P} shared a highlight`) : L(`${s.me.highlights.length} câu bạn đã highlight`, `${s.me.highlights.length} of your highlights`));
