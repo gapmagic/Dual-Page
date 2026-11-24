@@ -367,7 +367,7 @@ async function device(req, env, url, rest) {
       const { s, sections } = await homeSections(db, me);
       const sec = sections.find((x) => x.id === list) || sections[0];
       const en = me.lang === "en";
-      return json({ items: [...sec.items, { id: "info", title: en ? `Updated ${s.updated_label}` : `Cập nhật lúc ${s.updated_label}`, author: en ? "Go back and reopen to refresh" : "Thoát ra rồi mở lại để làm mới" }] });
+      return json({ items: sec.items });
     }
     return json({ items: await homeItems(db, me) });
   }
@@ -448,21 +448,26 @@ async function homeSections(db, me) {
           : p.read_today
             ? L(`đã đọc ${Math.round(p.today_pct)}% / ${Math.round(p.target_pct)}%`, `read ${Math.round(p.today_pct)}% of ${Math.round(p.target_pct)}%`)
             : L("chưa đọc hôm nay", "hasn't read today");
+  // One row only: the download button when the room has a file, else one info row.
   const bookSection = () => {
     if (!s.book) return;
     section("book", L("Sách chung", "Shared book"), s.book.title);
-    info(s.book.title, s.me.bound ? L(`Bạn đang đọc file: ${s.me.book}`, `Your file: ${s.me.book}`) : L("Mở cuốn này trên máy để bắt đầu tính tiến độ", "Open this book on your reader to start tracking"));
+    const counts = L("Chỉ cuốn này được tính vào chuỗi.", "Only this book counts toward your streak.");
     if (s.book.file) {
       const ext = s.book.file.match(/\.[^.]+$/)?.[0] || ".epub";
-      cur.items.push({ id: fileSafe(s.book.title) + ext, title: "» " + L("Tải sách chung về máy", "Download the shared book"), author: L("Lưu vào thư mục DualPage. Lần đầu mở bằng Duyệt file", "Saved to the DualPage folder. First time, open it from the file browser") });
+      cur.items.push({
+        id: fileSafe(s.book.title) + ext,
+        title: "» " + L(`Tải về “${s.book.title}”`, `Download “${s.book.title}”`),
+        author: counts + " " + L("Lưu vào thư mục DualPage; lần đầu mở bằng Duyệt file.", "Saved to the DualPage folder; the first time, open it from the file browser."),
+      });
+    } else {
+      info(s.book.title, counts + " " + (s.me.bound ? L(`Bạn đang đọc file ${s.me.book}.`, `Your file: ${s.me.book}.`) : L("Chép sách vào máy rồi mở để bắt đầu.", "Copy the book to your reader and open it to start.")));
     }
-    info(L("Chỉ sách chung được tính tiến độ", "Only the shared book counts"), L("Đọc sách khác vẫn được, chỉ không cộng vào chuỗi", "Other books are fine, they just don't count"));
   };
 
   if (s.phase === "waiting") {
     section("today", L("Chờ bạn đọc vào phòng", "Waiting for your partner"), L(`Mã mời ${s.code}`, `Invite code ${s.code}`));
-    info(L(`Mã mời: ${s.code}`, `Invite code: ${s.code}`), L("Gửi mã này cho bạn đọc để ghép đôi", "Send this code to your reading partner"));
-    info(L(`Sprint ${s.sprint_days} ngày`, `${s.sprint_days}-day sprint`), L("Bắt đầu khi bạn đọc vào phòng và đồng ý", "Starts when your partner joins and accepts"));
+    info(L(`Mã mời: ${s.code}`, `Invite code: ${s.code}`), L(`Gửi mã cho bạn đọc. Sprint ${s.sprint_days} ngày bắt đầu khi bạn ấy vào phòng và đồng ý.`, `Send it to your reading partner. The ${s.sprint_days}-day sprint starts when they join and accept.`));
     bookSection();
     return { s, sections };
   }
@@ -486,9 +491,10 @@ async function homeSections(db, me) {
   const nudged = s.me.nudged;
   section("today", L("Hôm nay", "Today"), nudged ? L(`${P} nhắc bạn đọc!`, `${P} nudged you to read!`) : L(`Chuỗi đọc chung ${s.streak} ngày`, `${s.streak}-day reading streak`));
   if (nudged) act("seen", L(`${P} nhắc bạn: Đọc thôi nào!`, `${P}: time to read!`), L("Bấm để đánh dấu đã xem", "Tap to mark as seen"));
-  info(L(`Chuỗi đọc chung: ${s.streak} ngày`, `Reading streak: ${s.streak} days`), L("Tăng 1 vào ngày cả hai cùng đạt mục tiêu", "Grows on days you both reach your goal"));
-  info(L("Bạn: ", "You: ") + st(s.me), L(`Đã đọc ${s.me.progress}% sách`, `${s.me.progress}% of the book read`));
-  info(`${P}: ${st(s.partner)}`, L(`Đã đọc ${s.partner.progress}% sách`, `${s.partner.progress}% of the book read`));
+  info(
+    L(`Chuỗi đọc chung: ${s.streak} ngày`, `Reading streak: ${s.streak} days`),
+    L("Bạn: ", "You: ") + st(s.me) + ` (${s.me.progress}%). ${P}: ${st(s.partner)} (${s.partner.progress}%).`
+  );
   if (!s.partner.done_today) act("nudge", L(`Nhắc ${P} đọc`, `Nudge ${P} to read`), L("Lời nhắc hiện trên màn hình chờ của bạn ấy", "Shows on their sleep screen"));
 
   const others = s.me.highlights.filter((h) => !s.me.shared || h.id !== s.me.shared.id).slice(0, 6);
@@ -525,8 +531,6 @@ async function homeItems(db, me) {
     items.push({ id: "info", title: `—— ${sec.title.toUpperCase()} ——`, author: sec.note });
     items.push(...sec.items);
   }
-  const en = me.lang === "en";
-  items.push({ id: "info", title: en ? `Updated ${s.updated_label}` : `Cập nhật lúc ${s.updated_label}`, author: en ? "Reopen to refresh" : "Mở lại mục này để làm mới" });
   return items;
 }
 
