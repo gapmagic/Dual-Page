@@ -620,7 +620,7 @@ async function homeSections(db, me, opts = {}) {
   for (const h of others) act("share-" + h.id, L("Chia sẻ: ", "Share: ") + `“${h.text.slice(0, 70)}${h.text.length > 70 ? "…" : ""}”`, h.chapter || L("Bấm để hiện câu này bên bạn đọc", "Tap to show this on your partner's screen"));
   if (!s.me.highlights.length) info(L("Chưa có câu highlight nào", "No highlights yet"), L("Highlight trong sách chung, câu mới nhất tự hiện bên bạn đọc", "Highlight in the shared book; your newest one shows on your partner's screen"));
   // XTeink only uploads clippings during a manual sync from the book menu.
-  if (opts.dev) info(L("Highlight xong: menu sách → Sync Progress", "After highlighting: book menu → Sync Progress"), L("Máy chỉ gửi highlight khi bạn đồng bộ. Hoặc giữ nút Menu trong sách.", "The reader only sends highlights when you sync. Or long-press Menu in the book."));
+  if (opts.dev) info(L("Highlight xong: menu sách → Sync Progress", "After highlighting: book menu → Sync Progress"), L("Trong sách bấm nút chọn (Confirm) để mở menu. Máy chỉ gửi highlight khi đồng bộ.", "In the book, press Confirm to open the menu. Highlights are sent only when you sync."));
 
   bookSection();
 
