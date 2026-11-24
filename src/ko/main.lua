@@ -317,10 +317,13 @@ function DualPage:setScreensaver(on)
         if not self:isScreensaverOn() then
             self.store:saveSetting("prev_type", G_reader_settings:readSetting("screensaver_type"))
             self.store:saveSetting("prev_dir", G_reader_settings:readSetting("screensaver_dir"))
+            self.store:saveSetting("prev_msg", G_reader_settings:isTrue("screensaver_show_message"))
             self.store:flush()
         end
         G_reader_settings:saveSetting("screensaver_type", "random_image")
         G_reader_settings:saveSetting("screensaver_dir", self.screen_dir)
+        -- The Dual Page image already says everything; drop KOReader's "Sleeping" box.
+        G_reader_settings:makeFalse("screensaver_show_message")
         NetworkMgr:runWhenOnline(function()
             local ok = self:refreshScreen()
             UIManager:show(InfoMessage:new{
@@ -331,6 +334,7 @@ function DualPage:setScreensaver(on)
         end)
     else
         G_reader_settings:saveSetting("screensaver_type", self.store:readSetting("prev_type") or "disable")
+        if self.store:readSetting("prev_msg") then G_reader_settings:makeTrue("screensaver_show_message") end
         local prev_dir = self.store:readSetting("prev_dir")
         if prev_dir then
             G_reader_settings:saveSetting("screensaver_dir", prev_dir)
