@@ -139,9 +139,7 @@ export async function computeState(db, me) {
           return h ? { id: h.clip_id, text: shortQuote(h.text), at: h.share_ts } : null;
         })(),
         highlights: hlFor(m)
-          .slice()
-          .sort((a, b) => b.created_at - a.created_at)
-          .slice(0, 8)
+          .slice(0, 3)
           .map((h) => ({ id: h.clip_id, text: shortQuote(h.text), chapter: h.chapter })),
         highlight_count: hlFor(m).length,
         last_updated: m.last_updated,

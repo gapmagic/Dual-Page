@@ -694,6 +694,14 @@ async function upsertHighlights(db, me, doc, items) {
       .bind(me.id, id, String(doc || "").slice(0, 64), text, String(it.chapter || "").slice(0, 120), created, t)
       .run();
   }
+  // Keep only each reader's 3 latest highlights (newest highlighted or shared).
+  await db
+    .prepare(
+      `UPDATE highlights SET deleted = 1 WHERE member_id = ? AND deleted = 0 AND rowid NOT IN
+       (SELECT rowid FROM highlights WHERE member_id = ? AND deleted = 0 ORDER BY share_ts DESC, created_at DESC, rowid DESC LIMIT 3)`
+    )
+    .bind(me.id, me.id)
+    .run();
 }
 
 async function kosync(req, env, url, route) {
