@@ -11,7 +11,22 @@ Contents:
 4. [Reading every day](#4-reading-every-day)
 5. [Sharing highlights](#5-sharing-highlights)
 6. [Nudges and sprint extensions](#6-nudges-and-sprint-extensions)
-7. [How progress and the streak are counted](#7-how-progress-and-the-streak-are-counted)
+7. Turn on highlight sharing (once; you need a computer or phone on the same Wi-Fi):
+   1. On the reader, open **File Transfer** and connect to Wi-Fi. The reader shows an address, e.g. `http://192.168.1.25/` or `http://crosspoint.local/`.
+
+      <img src="guide-en/05a-file-transfer.png" width="280" alt="File Transfer screen on the reader">
+
+   2. On a computer on **the same Wi-Fi**, open a browser and type that address. The reader's page opens. Click **Plugins** in the top bar.
+
+      <img src="guide-en/05b-reader-page-on-pc.png" width="560" alt="The reader's page open on a computer">
+
+   3. On the **Dual Page: share highlights** card, click **Turn on highlight sharing**. When it shows **On ✓**, you're done. This points the reader's KOSync highlight sync at Dual Page.
+
+      <img src="guide-en/05c-turn-on-sharing.png" width="560" alt="Turn on highlight sharing on the Plugins page">
+
+   4. On the reader, exit **File Transfer**.
+
+   *Illustrations only; your reader's address will differ.*
 8. [FAQ and troubleshooting](#8-faq-and-troubleshooting)
 
 ---

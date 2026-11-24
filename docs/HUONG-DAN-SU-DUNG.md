@@ -9,7 +9,22 @@ Mục lục:
 4. [Đọc hằng ngày](#4-đọc-hằng-ngày)
 5. [Chia sẻ câu hay (highlight)](#5-chia-sẻ-câu-hay-highlight)
 6. [Nhắc bạn đọc, gia hạn sprint](#6-nhắc-bạn-đọc-gia-hạn-sprint)
-7. [Tiến độ và chuỗi ngày được tính thế nào](#7-tiến-độ-và-chuỗi-ngày-được-tính-thế-nào)
+7. Bật chia sẻ highlight (làm một lần, cần máy tính hoặc điện thoại cùng Wi-Fi):
+   1. Trên máy, mở **File Transfer** và kết nối Wi-Fi. Máy hiện một địa chỉ, ví dụ `http://192.168.1.25/` hoặc `http://crosspoint.local/`.
+
+      <img src="guide/05a-file-transfer.png" width="280" alt="Màn hình File Transfer trên máy">
+
+   2. Trên máy tính đang dùng **cùng mạng Wi-Fi**, mở trình duyệt và gõ địa chỉ đó. Trang của máy đọc hiện ra. Bấm **Plugins** ở thanh trên cùng.
+
+      <img src="guide/05b-trang-may-tren-pc.png" width="560" alt="Trang của máy đọc mở trên máy tính">
+
+   3. Ở thẻ **Dual Page: chia sẻ câu highlight**, bấm **Bật chia sẻ highlight**. Khi hiện **Đã bật ✓** là xong. Nút này cài đồng bộ highlight (KOSync) về Dual Page.
+
+      <img src="guide/05c-bat-chia-se-highlight.png" width="560" alt="Bấm Bật chia sẻ highlight trong trang Plugins">
+
+   4. Trên máy, thoát **File Transfer**.
+
+   *Ảnh minh họa, địa chỉ trên máy bạn sẽ khác.*
 8. [Câu hỏi thường gặp và xử lý lỗi](#8-câu-hỏi-thường-gặp-và-xử-lý-lỗi)
 
 ---
