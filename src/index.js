@@ -648,13 +648,6 @@ async function homeSections(db, me, opts = {}) {
   }
   if (opts.ko) for (const h of others) act("share-" + h.id, L("Chia sẻ: ", "Share: ") + `“${h.text.slice(0, 70)}${h.text.length > 70 ? "…" : ""}”`, h.chapter || L("Bấm để hiện câu này bên bạn đọc", "Tap to show this on your partner's screen"));
   if (!s.me.shared) info(L("Chưa có câu highlight nào", "No highlights yet"), L("Highlight trong sách chung, câu mới nhất tự hiện bên bạn đọc", "Highlight in the shared book; your newest one shows on your partner's screen"));
-  // XTeink only uploads clippings during a manual sync from the book menu.
-  if (opts.dev)
-    info(
-      L(`Cách chia sẻ một câu cho ${P}`, `How to share a quote with ${P}`),
-      L(`1. Menu sách → Create Clipping, chọn câu. 2. Menu sách → Sync Progress (X4 Pro: chạm đúp Home nếu đã cài). Câu sẽ hiện trên máy ${P}.`,
-        `1. Book menu → Create Clipping, select the text. 2. Book menu → Sync Progress (X4 Pro: double-tap Home if set up). It then shows on ${P}'s device.`)
-    );
 
 
   bookSection();
