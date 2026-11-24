@@ -59,9 +59,13 @@ function memberDays(m, rows, room) {
   const gain = (day) => {
     const r = byDay.get(day);
     if (!r) return 0;
+    // Progress follows the reader's latest position (an accidental jump to the
+    // end counts until they go back). Today's gain = where they are now minus
+    // where the day started: yesterday's last position, or today's lowest if lower.
     let prev = m.baseline_bp ?? 0;
-    for (const s of sorted) if (s.day < day && s.max_bp > prev) prev = s.max_bp;
-    return Math.max(0, r.max_bp - prev);
+    for (const s of sorted) if (s.day < day) prev = s.last_bp ?? s.max_bp;
+    const start = Math.min(prev, r.first_bp ?? prev);
+    return Math.max(0, (r.last_bp ?? r.max_bp) - start);
   };
   const done = (day) => {
     if (!m.target_bp) return false;
@@ -236,7 +240,7 @@ export async function ingest(db, m, bp, ts, opts = {}) {
   const baseline = upd.baseline_bp ?? m.baseline_bp ?? 0;
   if (!room.start_ts) {
     // Sprint not started yet: reading so far only moves the starting point.
-    upd.baseline_bp = Math.max(baseline, bp);
+    upd.baseline_bp = bp;
   }
   const base = upd.baseline_bp ?? baseline;
   const days = room.start_ts ? Math.round((room.end_ts - room.start_ts) / DAY) : room.sprint_days;
@@ -244,11 +248,14 @@ export async function ingest(db, m, bp, ts, opts = {}) {
     upd.target_bp = Math.max(1, Math.ceil((FULL - base) / days));
   }
 
-  const newBp = Math.max(m.bp || 0, bp);
-  upd.bp = newBp;
+  // Latest position wins (older, late-arriving points don't move it back).
+  if (!m.pos_ts || ts >= m.pos_ts) {
+    upd.bp = bp;
+    upd.pos_ts = ts;
+    upd.finished_ts = bp >= 9900 ? m.finished_ts || ts : null;
+    if (bp > (m.bp || 0)) upd.nudged_ts = null;
+  }
   upd.last_updated = now();
-  if (newBp >= 9900 && !m.finished_ts) upd.finished_ts = ts;
-  if (bp > (m.bp || 0)) upd.nudged_ts = null;
 
   const stmts = [];
   if (room.start_ts) {
@@ -256,10 +263,13 @@ export async function ingest(db, m, bp, ts, opts = {}) {
     stmts.push(
       db
         .prepare(
-          `INSERT INTO daily (member_id, day, max_bp, seconds) VALUES (?, ?, ?, ?)
-           ON CONFLICT(member_id, day) DO UPDATE SET max_bp = MAX(max_bp, excluded.max_bp), seconds = seconds + excluded.seconds`
+          `INSERT INTO daily (member_id, day, max_bp, seconds, last_bp, first_bp, last_ts) VALUES (?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(member_id, day) DO UPDATE SET max_bp = MAX(max_bp, excluded.max_bp), seconds = seconds + excluded.seconds,
+             first_bp = MIN(COALESCE(first_bp, excluded.first_bp), excluded.first_bp),
+             last_bp = CASE WHEN last_ts IS NULL OR excluded.last_ts >= last_ts THEN excluded.last_bp ELSE last_bp END,
+             last_ts = MAX(COALESCE(last_ts, 0), excluded.last_ts)`
         )
-        .bind(m.id, day, bp, opts.seconds || 0)
+        .bind(m.id, day, bp, opts.seconds || 0, bp, Math.min(bp, opts.startBp ?? bp), ts)
     );
   }
   const keys = Object.keys(upd);
