@@ -616,7 +616,8 @@ async function homeSections(db, me, opts = {}) {
   // KOReader draws this section from `quotes`: two parts, each with the newest
   // quote and the earlier ones (the rows below stay for older plugin versions).
   if (opts.ko) {
-    const q = (x) => x && { text: x.text, chapter: x.chapter, when: x.when };
+    // No JSON nulls: KOReader's rapidjson turns null into a sentinel, not nil.
+    const q = (x) => (x ? { text: String(x.text || ""), chapter: String(x.chapter || ""), when: String(x.when || "") } : false);
     cur.quotes = {
       partner: { name: P, current: q(s.partner.shared), history: s.partner.shared_history.map(q) },
       me: { current: q(s.me.shared), history: s.me.shared_history.map(q) },
