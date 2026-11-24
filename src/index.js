@@ -656,7 +656,7 @@ async function homeSections(db, me, opts = {}) {
         `1. Book menu → Create Clipping, select the text. 2. Book menu → Sync Progress. It then shows on ${P}'s device.`)
     );
     info(
-      L("Mẹo X4 Pro: sync bằng chạm đúp phím Home", "X4 Pro tip: sync with a double-tap on Home"),
+      L("Mẹo X4 Pro: chạm đúp Home để sync", "X4 Pro tip: double-tap Home to sync"),
       L("Settings → Controls → Home Button Gestures → Double Tap = CrossPoint Sync. Cài một lần.", "Settings → Controls → Home Button Gestures → Double Tap = CrossPoint Sync. Set it once.")
     );
   }
