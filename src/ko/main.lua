@@ -531,11 +531,12 @@ end
 
 function DualPage:downloadBook(name)
     local home = G_reader_settings:readSetting("home_dir") or Device.home_dir or DataStorage:getDataDir()
-    local dir = home .. "/DualPage"
-    util.makePath(dir)
-    local dest = dir .. "/" .. name
-    -- Already downloaded: just open it.
+    -- Straight into KOReader's home folder, next to the reader's other books.
+    local dest = home .. "/" .. name
+    -- Already downloaded (here, or in the DualPage folder older versions used): just open it.
     local lfs = require("libs/libkoreader-lfs")
+    local old = home .. "/DualPage/" .. name
+    if not lfs.attributes(dest, "size") and (lfs.attributes(old, "size") or 0) > 0 then dest = old end
     local size = lfs.attributes(dest, "size")
     if size and size > 0 then
         if self.ui.document and self.ui.document.file == dest then
@@ -553,7 +554,7 @@ function DualPage:downloadBook(name)
             UIManager:show(InfoMessage:new{ text = L("Tải sách không thành công.", "Download failed.") })
             return
         end
-        UIManager:show(Notification:new{ text = L("Đã lưu vào thư mục DualPage. Đang mở sách…", "Saved to the DualPage folder. Opening…") })
+        UIManager:show(Notification:new{ text = L("Đã lưu vào thư mục sách của KOReader. Đang mở…", "Saved to your KOReader books folder. Opening…") })
         self:openBook(dest)
     end)
 end
