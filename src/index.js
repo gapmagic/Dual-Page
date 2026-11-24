@@ -622,22 +622,17 @@ async function homeSections(db, me, opts = {}) {
       me: { current: q(s.me.shared), history: s.me.shared_history.map(q) },
     };
   }
-  // XTeink: two parts, newest quote each (title one line, quote up to 3 lines).
-  const ph = s.partner.shared_history, mh = s.me.shared_history;
+  // XTeink: your quote, the partner's quote, then the partner's earlier ones
+  // (title one line, quote up to 3 lines).
+  const ph = s.partner.shared_history;
   const stamp = (x) => [x.when, x.chapter].filter(Boolean).join(" · ");
+  if (s.me.shared) info(L(`Bạn chia sẻ với ${P}`, `You shared with ${P}`) + (s.me.shared.when ? " · " + s.me.shared.when : ""), `“${s.me.shared.text}”`);
   if (s.partner.shared) info(L(`${P} chia sẻ với bạn`, `${P} shared with you`) + (s.partner.shared.when ? " · " + s.partner.shared.when : ""), `“${s.partner.shared.text}”`);
   else info(L(`${P} chia sẻ với bạn`, `${P} shared with you`), L(`${P} chưa chia sẻ câu nào.`, `${P} hasn't shared a quote yet.`));
-  if (s.me.shared) info(L(`Bạn chia sẻ với ${P}`, `You shared with ${P}`) + (s.me.shared.when ? " · " + s.me.shared.when : ""), `“${s.me.shared.text}”`);
-  // Earlier quotes of both readers in this same list (XTeink lists can't nest).
-  if (!opts.ko) {
-    if (ph.length) {
-      info(L(`${P} đã chia sẻ trước đó`, `Earlier from ${P}`), L(`${ph.length} câu, mới nhất ở trên`, `${ph.length} quotes, newest first`));
-      for (const x of ph) info(stamp(x), `“${x.text}”`);
-    }
-    if (mh.length) {
-      info(L("Bạn đã chia sẻ trước đó", "Your earlier quotes"), L(`${mh.length} câu, mới nhất ở trên`, `${mh.length} quotes, newest first`));
-      for (const x of mh) info(stamp(x), `“${x.text}”`);
-    }
+  if (!opts.ko && ph.length) {
+    // Fits one screen: only the partner's 3 latest earlier quotes (your own are in your book).
+    info(L(`${P} đã chia sẻ trước đó`, `Earlier from ${P}`), L("Mới nhất ở trên", "Newest first"));
+    for (const x of ph.slice(0, 3)) info(stamp(x), `“${x.text}”`);
   }
   // XTeink: highlights reach Dual Page through the reader's KOReader Sync. Until
   // this reader has talked to it, show how to turn it on right on the device.
