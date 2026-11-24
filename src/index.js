@@ -498,10 +498,6 @@ async function device(req, env, url, rest) {
       if (id === "nudge" && partner) {
         await db.prepare("UPDATE members SET nudged_ts = ? WHERE id = ?").bind(now(), partner.id).run();
         msg = L(`Đã nhắc ${partner.name}.`, `Nudged ${partner.name}.`);
-      } else if (id.startsWith("reshare-")) {
-        msg = (await reshare(db, me, id.slice(8)))
-          ? (me.lang === "en" ? "Shared again. It now shows on your partner's sleep screen." : "Đã chia sẻ lại. Câu này đang hiện trên màn hình chờ của bạn đọc.")
-          : (me.lang === "en" ? "Couldn't find this quote." : "Không tìm thấy câu này.");
       } else if (id.startsWith("share-")) {
         const r = await db.prepare("UPDATE highlights SET share_ts = ? WHERE member_id = ? AND clip_id = ? AND deleted = 0").bind(now(), me.id, id.slice(6)).run();
         msg = r.meta.changes ? L("Đã chia sẻ câu này.", "Shared.") : L("Không tìm thấy câu này.", "Highlight not found.");
@@ -620,24 +616,24 @@ async function homeSections(db, me, opts = {}) {
   // KOReader draws this section from `quotes`: two parts, each with the newest
   // quote and the earlier ones (the rows below stay for older plugin versions).
   if (opts.ko) {
-    const q = (x) => x && { sid: x.sid, text: x.text, chapter: x.chapter, when: x.when };
+    const q = (x) => x && { text: x.text, chapter: x.chapter, when: x.when };
     cur.quotes = {
       partner: { name: P, current: q(s.partner.shared), history: s.partner.shared_history.map(q) },
       me: { current: q(s.me.shared), history: s.me.shared_history.map(q) },
     };
   }
-  // XTeink: two parts, newest quote each (title one line, quote up to 3 lines).
-  // Earlier quotes get their own lists in the main menu (no sub-lists on XTeink).
-  const ph = s.partner.shared_history, mh = s.me.shared_history;
+  // XTeink: your quote, the partner's quote, then the partner's earlier ones
+  // (title one line, quote up to 3 lines).
+  const ph = s.partner.shared_history;
   const stamp = (x) => [x.when, x.chapter].filter(Boolean).join(" · ");
+  if (s.me.shared) info(L(`Bạn chia sẻ với ${P}`, `You shared with ${P}`) + (s.me.shared.when ? " · " + s.me.shared.when : ""), `“${s.me.shared.text}”`);
   if (s.partner.shared) info(L(`${P} chia sẻ với bạn`, `${P} shared with you`) + (s.partner.shared.when ? " · " + s.partner.shared.when : ""), `“${s.partner.shared.text}”`);
   else info(L(`${P} chia sẻ với bạn`, `${P} shared with you`), L(`${P} chưa chia sẻ câu nào.`, `${P} hasn't shared a quote yet.`));
-  if (s.me.shared) info(L(`Bạn chia sẻ với ${P}`, `You shared with ${P}`) + (s.me.shared.when ? " · " + s.me.shared.when : ""), `“${s.me.shared.text}”`);
-  if (ph.length || mh.length)
-    info(
-      L("Các câu trước đó", "Earlier quotes"),
-      L(`Ở menu Dual Page: mục “${P} đã chia sẻ” (${ph.length} câu) và “Bạn đã chia sẻ” (${mh.length} câu).`, `In the Dual Page menu: “${P} shared” (${ph.length}) and “You shared” (${mh.length}).`)
-    );
+  if (!opts.ko && ph.length) {
+    // Fits one screen: only the partner's 3 latest earlier quotes (your own are in your book).
+    info(L(`${P} đã chia sẻ trước đó`, `Earlier from ${P}`), L("Mới nhất ở trên", "Newest first"));
+    for (const x of ph.slice(0, 3)) info(stamp(x), `“${x.text}”`);
+  }
   // XTeink: highlights reach Dual Page through the reader's KOReader Sync. Until
   // this reader has talked to it, show how to turn it on right on the device.
   if (opts.dev) {
@@ -652,19 +648,7 @@ async function homeSections(db, me, opts = {}) {
   }
   if (opts.ko) for (const h of others) act("share-" + h.id, L("Chia sẻ: ", "Share: ") + `“${h.text.slice(0, 70)}${h.text.length > 70 ? "…" : ""}”`, h.chapter || L("Bấm để hiện câu này bên bạn đọc", "Tap to show this on your partner's screen"));
   if (!s.me.shared) info(L("Chưa có câu highlight nào", "No highlights yet"), L("Highlight trong sách chung, câu mới nhất tự hiện bên bạn đọc", "Highlight in the shared book; your newest one shows on your partner's screen"));
-  // XTeink only uploads clippings during a manual sync from the book menu.
-  if (opts.dev) info(L("Highlight xong: menu sách → Sync Progress", "After highlighting: book menu → Sync Progress"), L("Trong sách bấm nút chọn (Confirm) để mở menu. Máy chỉ gửi highlight khi đồng bộ.", "In the book, press Confirm to open the menu. Highlights are sent only when you sync."));
 
-  if (!opts.ko) {
-    if (ph.length) {
-      section("quotes_partner", L(`${P} đã chia sẻ`, `${P} shared`), L(`${ph.length} câu trước đó`, `${ph.length} earlier quotes`));
-      for (const x of ph) info(stamp(x), `“${x.text}”`);
-    }
-    if (mh.length) {
-      section("quotes_me", L("Bạn đã chia sẻ", "You shared"), L(`${mh.length} câu trước đó`, `${mh.length} earlier quotes`));
-      for (const x of mh) act("reshare-" + x.sid, L("Chia sẻ lại · ", "Share again · ") + stamp(x), `“${x.text}”`);
-    }
-  }
 
   bookSection();
 
@@ -741,24 +725,6 @@ async function capHighlights(db, me) {
     )
     .bind(me.id, me.id)
     .run();
-}
-
-// Shares an earlier quote again from the history (shares.id), even if its
-// highlight was trimmed or removed on the reader since.
-async function reshare(db, me, sid) {
-  const r = await db.prepare("SELECT * FROM shares WHERE id = ? AND member_id = ? AND room_id = ?").bind(Number(sid) || 0, me.id, me.room_id).first();
-  if (!r) return false;
-  const room = await db.prepare("SELECT book_doc FROM rooms WHERE id = ?").bind(me.room_id).first();
-  const t = now();
-  await db
-    .prepare(
-      `INSERT INTO highlights (member_id, clip_id, doc, text, chapter, created_at, share_ts) VALUES (?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT(member_id, clip_id) DO UPDATE SET deleted = 0, share_ts = excluded.share_ts`
-    )
-    .bind(me.id, r.clip_id, me.book_doc || (room && room.book_doc) || "", r.text, r.chapter || "", r.ts, t)
-    .run();
-  await capHighlights(db, me);
-  return true;
 }
 
 async function kosync(req, env, url, route) {
