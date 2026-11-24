@@ -91,7 +91,7 @@ The menu has 4 sections. Each title shows what's new, e.g. **Today · Sam nudged
 5. Open KOReader's main menu (tap the top of the screen) → **Dual Page** → turn on **Use Dual Page sleep screen**.
 6. Open **Dual Page → Open Dual Page** to see your room. It has the same 4 sections as on the XTeink.
 
-**Kindle note:** the Dual Page sleep screen only shows when KOReader handles sleep. If you still see Amazon's screensaver, check KOReader's **Screen → Sleep screen** settings. Kindles with ads (Special Offers) may always show Amazon's ads.
+**Kindle note:** the Dual Page sleep screen only shows when KOReader handles sleep. If you still see Amazon's screensaver, check KOReader's **Screen → Sleep screen** settings. **Kindles with ads (Special Offers) always show Amazon's ad when asleep**: KOReader turns its own sleep screen off on these devices, so Dual Page can't replace it. To get the Dual Page sleep screen, remove the ads on Amazon: **Manage Content & Devices → Devices → your Kindle → Special Offers → Remove** (usually a one-time fee of about 20 USD). Progress, highlights and nudges still work with ads on.
 
 To stop using the Dual Page sleep screen, untick **Use Dual Page sleep screen**. KOReader goes back to your previous sleep screen.
 

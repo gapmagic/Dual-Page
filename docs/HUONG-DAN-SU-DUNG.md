@@ -95,7 +95,7 @@ Menu chia thành 4 mục. Tên mục cho biết ngay có gì mới, ví dụ **H
 Menu Dual Page trên KOReader có cùng các dòng như ảnh menu ở mục 2.
 
 
-**Lưu ý cho Kindle:** màn hình chờ Dual Page chỉ hiện khi KOReader điều khiển việc ngủ. Nếu Kindle vẫn hiện màn hình chờ của Amazon, vào menu của KOReader → **Màn hình → Màn hình chờ** và kiểm tra lại. Máy Kindle có quảng cáo (Special Offers) có thể luôn hiện quảng cáo của Amazon.
+**Lưu ý cho Kindle:** màn hình chờ Dual Page chỉ hiện khi KOReader điều khiển việc ngủ. Nếu Kindle vẫn hiện màn hình chờ của Amazon, vào menu của KOReader → **Màn hình → Màn hình chờ** và kiểm tra lại. **Kindle có quảng cáo (Special Offers) luôn hiện quảng cáo của Amazon khi ngủ**: KOReader tự tắt màn hình chờ của nó trên các máy này, nên Dual Page không thay được. Muốn dùng màn hình chờ Dual Page, gỡ quảng cáo trên trang Amazon: **Quản lý nội dung và thiết bị → Thiết bị → chọn Kindle → Ưu đãi đặc biệt → Gỡ bỏ** (thường mất phí khoảng 20 USD). Tiến độ, highlight và lời nhắc vẫn chạy bình thường dù còn quảng cáo.
 
 Tắt màn hình chờ Dual Page: bỏ chọn **Dùng màn hình chờ Dual Page**. KOReader trở lại kiểu màn hình chờ cũ của bạn.
 

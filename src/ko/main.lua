@@ -300,6 +300,19 @@ function DualPage:isScreensaverOn()
 end
 
 function DualPage:setScreensaver(on)
+    -- Ad-supported Kindles ("Special Offers") draw Amazon's ad screen on sleep
+    -- and KOReader turns its own screensaver off there, so nothing we save
+    -- would show. Say so instead of pretending it worked.
+    if on and Device.supportsScreensaver and not Device:supportsScreensaver() then
+        UIManager:show(InfoMessage:new{
+            text = Device:isKindle()
+                and L("Kindle này đang có quảng cáo (Special Offers), nên màn hình chờ luôn là quảng cáo của Amazon và KOReader không thay được. Muốn dùng màn hình chờ Dual Page, hãy gỡ quảng cáo trong tài khoản Amazon (Quản lý nội dung và thiết bị → Thiết bị → Ưu đãi đặc biệt). Tiến độ, highlight và lời nhắc vẫn chạy bình thường.",
+                      "This Kindle shows ads (Special Offers), so its sleep screen is always Amazon's ad and KOReader can't replace it. To use the Dual Page sleep screen, remove the ads in your Amazon account (Manage Content & Devices → Devices → Special Offers). Progress, highlights and nudges still work.")
+                or L("Máy này không cho KOReader đổi màn hình chờ. Tiến độ, highlight và lời nhắc vẫn chạy bình thường.",
+                      "This device doesn't let KOReader change the sleep screen. Progress, highlights and nudges still work."),
+        })
+        return
+    end
     if on then
         if not self:isScreensaverOn() then
             self.store:saveSetting("prev_type", G_reader_settings:readSetting("screensaver_type"))
