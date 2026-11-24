@@ -383,7 +383,20 @@ function DualPage:openMenu(title, items)
         is_popout = false,
         close_callback = function() UIManager:close(menu) end,
     }
+    self.open_menus = self.open_menus or {}
+    table.insert(self.open_menus, menu)
     UIManager:show(menu)
+end
+
+-- Closes every Dual Page menu, then opens the book, so reading starts at once.
+-- Opening adds it to KOReader's History, where it stays at the top.
+function DualPage:openBook(path)
+    for _, m in ipairs(self.open_menus or {}) do UIManager:close(m) end
+    self.open_menus = {}
+    UIManager:nextTick(function()
+        local ReaderUI = require("apps/reader/readerui")
+        ReaderUI:showReader(path)
+    end)
 end
 
 -- Builds the menu rows of one section.
@@ -494,21 +507,27 @@ function DualPage:downloadBook(name)
     local dir = home .. "/DualPage"
     util.makePath(dir)
     local dest = dir .. "/" .. name
+    -- Already downloaded: just open it.
+    local lfs = require("libs/libkoreader-lfs")
+    local size = lfs.attributes(dest, "size")
+    if size and size > 0 then
+        if self.ui.document and self.ui.document.file == dest then
+            for _, m in ipairs(self.open_menus or {}) do UIManager:close(m) end
+            self.open_menus = {}
+            return
+        end
+        return self:openBook(dest)
+    end
     UIManager:show(InfoMessage:new{ text = L("Đang tải sách chung…", "Downloading the shared book…"), timeout = 1 })
     UIManager:scheduleIn(1, function()
         local ok = request("GET", "act/" .. util.urlEncode(name), nil, nil, dest)
         if not ok then
+            os.remove(dest)
             UIManager:show(InfoMessage:new{ text = L("Tải sách không thành công.", "Download failed.") })
             return
         end
-        UIManager:show(ConfirmBox:new{
-            text = L("Đã lưu vào ", "Saved to ") .. dest .. L("\n\nMở sách ngay?", "\n\nOpen it now?"),
-            ok_text = L("Mở", "Open"),
-            ok_callback = function()
-                local ReaderUI = require("apps/reader/readerui")
-                ReaderUI:showReader(dest)
-            end,
-        })
+        UIManager:show(Notification:new{ text = L("Đã lưu vào thư mục DualPage. Đang mở sách…", "Saved to the DualPage folder. Opening…") })
+        self:openBook(dest)
     end)
 end
 
