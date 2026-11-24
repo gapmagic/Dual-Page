@@ -70,6 +70,8 @@ The menu has 4 sections. Each title shows what's new, e.g. **Today · Sam nudged
 
 ---
 
+> **Which rows do something?** In the Dual Page menu, rows starting with **»** are buttons (nudge, share a line, extend, download the book). Other rows are just information. On XTeink, pressing an info row shows "Download complete" and changes nothing.
+
 ## 3. Set up a Kindle, Kobo… (KOReader)
 
 **You need:** **KOReader** installed. Kindles need a jailbreak to run KOReader. Kobo, PocketBook and Android install KOReader normally.

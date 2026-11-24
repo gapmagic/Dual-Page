@@ -435,7 +435,9 @@ async function homeSections(db, me) {
   let cur;
   const section = (id, title, note = "") => sections.push((cur = { id, title, note, items: [] }));
   const info = (title, author = "") => cur.items.push({ id: "info", title, author });
-  const act = (id, title, author = "") => cur.items.push({ id: id + ".dp", title, author });
+  // Firmware treats every row as fetchable; mark the real buttons with "» " so
+  // plain info rows read as text, not actions.
+  const act = (id, title, author = "") => cur.items.push({ id: id + ".dp", title: "» " + title, author });
   const st = (p) =>
     !p.bound
       ? L("chưa mở sách chung", "hasn't opened the shared book")
@@ -452,7 +454,7 @@ async function homeSections(db, me) {
     info(s.book.title, s.me.bound ? L(`Bạn đang đọc file: ${s.me.book}`, `Your file: ${s.me.book}`) : L("Mở cuốn này trên máy để bắt đầu tính tiến độ", "Open this book on your reader to start tracking"));
     if (s.book.file) {
       const ext = s.book.file.match(/\.[^.]+$/)?.[0] || ".epub";
-      cur.items.push({ id: fileSafe(s.book.title) + ext, title: L("Tải sách chung về máy", "Download the shared book"), author: L("Lưu vào thư mục DualPage. Lần đầu mở bằng Duyệt file", "Saved to the DualPage folder. First time, open it from the file browser") });
+      cur.items.push({ id: fileSafe(s.book.title) + ext, title: "» " + L("Tải sách chung về máy", "Download the shared book"), author: L("Lưu vào thư mục DualPage. Lần đầu mở bằng Duyệt file", "Saved to the DualPage folder. First time, open it from the file browser") });
     }
     info(L("Chỉ sách chung được tính tiến độ", "Only the shared book counts"), L("Đọc sách khác vẫn được, chỉ không cộng vào chuỗi", "Other books are fine, they just don't count"));
   };

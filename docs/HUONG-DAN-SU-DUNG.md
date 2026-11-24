@@ -71,6 +71,8 @@ Menu chia thành 4 mục. Tên mục cho biết ngay có gì mới, ví dụ **H
 
 ---
 
+> **Dòng nào bấm được?** Trong menu Dual Page, dòng có dấu **»** ở đầu là nút bấm (nhắc đọc, chia sẻ câu, gia hạn, tải sách). Các dòng còn lại chỉ để xem. Trên XTeink, lỡ bấm vào dòng xem thì máy hiện "Tải về xong", không ảnh hưởng gì.
+
 ## 3. Cài cho Kindle, Kobo… (KOReader)
 
 **Cần có:** máy đã cài **KOReader**. Kindle cần được jailbreak để cài KOReader. Kobo, PocketBook và Android cài KOReader bình thường.
