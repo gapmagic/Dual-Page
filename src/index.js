@@ -296,6 +296,22 @@ async function startSprint(db, room) {
   ]);
 }
 
+// Short code a reader can type in its own KOReader Sync settings as the
+// username, instead of the 32-character device token.
+const SYNC_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+async function syncCodeFor(db, deviceToken) {
+  const row = await db.prepare("SELECT sync_code, kosync_ts FROM devices WHERE token = ?").bind(deviceToken).first();
+  if (!row) return null;
+  if (row.sync_code) return row;
+  for (let i = 0; i < 5; i++) {
+    const bytes = crypto.getRandomValues(new Uint8Array(6));
+    const code = Array.from(bytes, (b) => SYNC_ALPHABET[b % SYNC_ALPHABET.length]).join("");
+    const r = await db.prepare("UPDATE devices SET sync_code = ? WHERE token = ? AND sync_code IS NULL AND NOT EXISTS (SELECT 1 FROM devices WHERE sync_code = ?)").bind(code, deviceToken, code).run();
+    if (r.meta.changes) return { sync_code: code, kosync_ts: row.kosync_ts };
+  }
+  return null;
+}
+
 async function linkDevice(db, d, memberToken) {
   if (!d || String(d).length < 16) return;
   await db
@@ -434,7 +450,7 @@ async function device(req, env, url, rest) {
       return json({ sections, updated: s.updated_label, lang: me.lang === "en" ? "en" : "vi" });
     }
     if (list) {
-      const { s, sections } = await homeSections(db, me);
+      const { s, sections } = await homeSections(db, me, { dev: token });
       const sec = sections.find((x) => x.id === list) || sections[0];
       const en = me.lang === "en";
       return json({ items: sec.items });
@@ -589,6 +605,18 @@ async function homeSections(db, me, opts = {}) {
   section("quotes", L("Câu hay", "Highlights"), s.partner.shared ? L(`${P} đang chia sẻ một câu`, `${P} shared a highlight`) : L(`${s.me.highlights.length} câu bạn đã highlight`, `${s.me.highlights.length} of your highlights`));
   if (s.partner.shared) info(L(`${P} chia sẻ với bạn`, `${P} shared with you`), `“${s.partner.shared.text}”`);
   if (s.me.shared) info(L("Câu bạn đang chia sẻ", "You're sharing"), `“${s.me.shared.text}”`);
+  // XTeink: highlights reach Dual Page through the reader's KOReader Sync. Until
+  // this reader has talked to it, show how to turn it on right on the device.
+  if (opts.dev) {
+    const sc = await syncCodeFor(db, opts.dev);
+    if (sc && !sc.kosync_ts) {
+      // Short rows: the list shows one line per title and per subtitle.
+      info(L(`Bật gửi highlight · mã ${sc.sync_code}`, `Turn on highlight sharing · code ${sc.sync_code}`), L("Settings → CrossPoint Sync, nhập như các dòng dưới", "Settings → CrossPoint Sync, enter the rows below"));
+      info("Server Type: KoSync", `Sync Server URL: https://${HOST}/kosync`);
+      info(`Username: ${sc.sync_code}`, "Password: dualpage");
+      info("Document Matching: Binary", "Sync Clippings: On");
+    }
+  }
   for (const h of others) act("share-" + h.id, L("Chia sẻ: ", "Share: ") + `“${h.text.slice(0, 70)}${h.text.length > 70 ? "…" : ""}”`, h.chapter || L("Bấm để hiện câu này bên bạn đọc", "Tap to show this on your partner's screen"));
   if (!s.me.highlights.length) info(L("Chưa có câu highlight nào", "No highlights yet"), L("Highlight trong sách chung, câu mới nhất tự hiện bên bạn đọc", "Highlight in the shared book; your newest one shows on your partner's screen"));
 
@@ -659,7 +687,13 @@ async function upsertHighlights(db, me, doc, items) {
 async function kosync(req, env, url, route) {
   const db = env.DB;
   const user = req.headers.get("x-auth-user") || "";
-  const { known, me } = await memberForDevice(db, user);
+  let devToken = user;
+  if (/^[A-Za-z0-9]{6}$/.test(user)) {
+    const d = await db.prepare("SELECT token FROM devices WHERE sync_code = ?").bind(user.toUpperCase()).first();
+    devToken = d ? d.token : "";
+  }
+  const { known, me } = await memberForDevice(db, devToken);
+  if (known) await db.prepare("UPDATE devices SET kosync_ts = ? WHERE token = ?").bind(now(), devToken).run();
   const kj = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { "content-type": "application/json" } });
   if (route === "users/create") return kj({ message: "Use dualpage.online" }, 402);
   if (!known) return kj({ message: "Unauthorized" }, 401);
