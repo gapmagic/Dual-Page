@@ -465,11 +465,9 @@ async function homeSections(db, me, opts = {}) {
       ? L("chưa mở sách chung", "hasn't opened the shared book")
       : p.finished
         ? L("đã đọc xong", "finished the book")
-        : p.done_today
-          ? L(`đã đạt mục tiêu hôm nay (+${p.today_pct}%)`, `reached today's goal (+${p.today_pct}%)`)
-          : p.read_today
-            ? L(`đã đọc ${Math.round(p.today_pct)}% / ${Math.round(p.target_pct)}%`, `read ${Math.round(p.today_pct)}% of ${Math.round(p.target_pct)}%`)
-            : L("chưa đọc hôm nay", "hasn't read today");
+        : p.read_today
+          ? L(`hôm nay đọc +${p.today_pct}%`, `read +${p.today_pct}% today`) + (p.done_today ? " ✓" : "")
+          : L("chưa đọc hôm nay", "hasn't read today");
   // One row only: the download button when the room has a file, else one info row.
   const bookSection = () => {
     if (!s.book) return;

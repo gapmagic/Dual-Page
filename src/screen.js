@@ -8,8 +8,8 @@ const L = (vi, en) => (EN ? en : vi);
 function statusLine(p) {
   if (!p.bound) return L("chưa mở sách chung", "not started the book");
   if (p.finished) return L("đã đọc xong sách ✓", "finished the book ✓");
-  if (p.done_today) return L(`xong hôm nay ✓ (+${p.today_pct}%)`, `done today ✓ (+${p.today_pct}%)`);
-  if (p.read_today) return L(`đã đọc ${fmt(p.today_pct)}% / ${fmt(p.target_pct)}%`, `read ${fmt(p.today_pct)}% / ${fmt(p.target_pct)}%`);
+  // What they really read today, not measured against the goal (✓ once it's met).
+  if (p.read_today) return L(`hôm nay +${fmt(p.today_pct)}%`, `today +${fmt(p.today_pct)}%`) + (p.done_today ? " ✓" : "");
   return L("chưa đọc hôm nay", "not read today");
 }
 

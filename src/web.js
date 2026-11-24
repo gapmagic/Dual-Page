@@ -80,7 +80,7 @@ const EN = {
   "chưa mở sách chung": "hasn't opened the shared book",
   "đã đọc xong ✓": "finished ✓",
   "xong hôm nay ✓": "done for today ✓",
-  "đã đọc {0}% / mục tiêu {1}%": "read {0}% of {1}% goal",
+  "hôm nay đọc +{0}%": "read +{0}% today",
   "chưa đọc hôm nay": "hasn't read today",
   "Bạn": "You",
   "Mã mời của bạn": "Your invite code",
@@ -280,8 +280,7 @@ function setToken(tk) { token = tk; localStorage.setItem("rp_t", tk); history.re
 function st(p) {
   if (!p.bound) return t("chưa mở sách chung");
   if (p.finished) return \`<span class="ok">\${t("đã đọc xong ✓")}</span>\`;
-  if (p.done_today) return \`<span class="ok">\${t("xong hôm nay ✓")}</span> (+\${p.today_pct}%)\`;
-  if (p.read_today) return t("đã đọc {0}% / mục tiêu {1}%", p.today_pct, p.target_pct);
+  if (p.read_today) return t("hôm nay đọc +{0}%", p.today_pct) + (p.done_today ? \` <span class="ok">✓</span>\` : "");
   return t("chưa đọc hôm nay");
 }
 function bars() {
