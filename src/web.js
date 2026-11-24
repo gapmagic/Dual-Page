@@ -25,6 +25,9 @@ button.ghost{background:#fff;color:var(--acc)}button:disabled{opacity:.5}
 .q{border-left:3px solid var(--line);padding:4px 10px;margin:8px 0}.q.fav{border-color:var(--acc)}.big-q{font-size:18px;line-height:1.4}
 .tabs button{margin-top:0}.err{color:#a3341f;min-height:1.2em}
 img.prev{width:100%;max-width:240px;border:1px solid var(--line);display:block;margin:8px auto}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:-4px 0 12px}.topbar button{margin:0;padding:6px 12px;font-size:14px}
+button.danger{color:#a3341f;border-color:#a3341f;background:#fff}button.dangerfill{background:#a3341f;border-color:#a3341f}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}.modal{background:#fff;border-radius:14px;padding:18px;max-width:420px;width:100%}.modal ul{padding-left:18px;margin:6px 0}
 ol{padding-left:20px}.btitle{font-size:22px;font-weight:700;line-height:1.25;margin:2px 0 6px}.book{border-left:4px solid var(--acc)}a.dl{font-weight:600;color:var(--acc)}details{margin-top:8px}summary{cursor:pointer;color:var(--acc)}li{margin:4px 0}
 </style></head><body><main>
 <header><h1>DUAL PAGE</h1><nav class="lang"><a href="#" data-l="vi" onclick="setLang('vi');return false">VI</a><a href="#" data-l="en" onclick="setLang('en');return false">EN</a></nav></header>
@@ -136,7 +139,26 @@ const EN = {
   "Cập nhật lúc {0}": "Updated {0}",
   "Làm mới": "Refresh",
   "Đổi phòng": "Switch room",
-  "Rời phòng này để tạo hoặc tham gia phòng khác? Dữ liệu phòng vẫn còn, vào lại bằng link có #t=.": "Leave this room to create or join another? Room data is kept; come back with your #t= link.",
+  "Rời phòng với {0}?": "Leave the room with {0}?",
+  "{0} sẽ được báo là bạn đã rời phòng.": "{0} will be told that you left.",
+  "Chuỗi đọc chung dừng ở <b>{0} ngày</b>, sprint kết thúc.": "Your shared streak stops at <b>{0} days</b> and the sprint ends.",
+  "Không vào lại phòng này được nữa.": "You can't come back to this room.",
+  "Máy đọc của bạn sẽ chuyển sang phòng mới khi bạn tạo hoặc tham gia phòng khác.": "Your reader moves to your next room when you create or join one.",
+  "Huỷ phòng này?": "Cancel this room?",
+  "Mã mời {0} sẽ không dùng được nữa.": "Invite code {0} will stop working.",
+  "Rời phòng": "Leave room",
+  "Huỷ phòng": "Cancel room",
+  "Ở lại": "Stay",
+  "Phòng {0}": "Room {0}",
+  "với {0}": "with {0}",
+  "{0} đã rời phòng.": "{0} left the room.",
+  "Chuỗi đọc chung của hai bạn dừng ở {0} ngày.": "Your shared streak ended at {0} days.",
+  "Phòng này đã đóng.": "This room is closed.",
+  "Tạo phòng mới": "Create a new room",
+  "Tổng kết": "Summary",
+  "ngày chuỗi đọc chung": "day reading streak",
+  "sách": "of the book",
+  "{0} phút": "{0} min",
   "Link riêng của bạn (mở trên máy khác):": "Your private link (to open on another device):",
   "hai bạn đọc cùng một cuốn": "you're both reading the same book",
   // server errors
@@ -285,11 +307,32 @@ function bars() {
   return [S.me, S.partner].map((p) => \`<div class="row"><b>\${p === S.me ? t("Bạn") : esc(p.name)}</b><span style="text-align:right">\${p.progress}%</span></div>
     <div class="bar"><i style="width:\${p.progress}%"></i></div>\`).join("");
 }
+function askLeave() {
+  const s = S, P = esc(s.partner ? s.partner.name : "");
+  const body = s.partner
+    ? \`<h2>\${t("Rời phòng với {0}?", P)}</h2><ul><li>\${t("{0} sẽ được báo là bạn đã rời phòng.", P)}</li>\${s.phase === "active" ? \`<li>\${t("Chuỗi đọc chung dừng ở <b>{0} ngày</b>, sprint kết thúc.", s.streak)}</li>\` : ""}<li>\${t("Không vào lại phòng này được nữa.")}</li><li>\${t("Máy đọc của bạn sẽ chuyển sang phòng mới khi bạn tạo hoặc tham gia phòng khác.")}</li></ul>\`
+    : \`<h2>\${t("Huỷ phòng này?")}</h2><p>\${t("Mã mời {0} sẽ không dùng được nữa.", s.code)}</p>\`;
+  const o = document.createElement("div");
+  o.className = "overlay";
+  o.innerHTML = \`<div class="modal">\${body}<button class="dangerfill" id="lv">\${s.partner ? t("Rời phòng") : t("Huỷ phòng")}</button><button class="ghost" id="st">\${t("Ở lại")}</button></div>\`;
+  document.body.appendChild(o);
+  o.querySelector("#st").onclick = () => o.remove();
+  o.querySelector("#lv").onclick = async () => { try { await call("leave", {}); } catch { return; } o.remove(); newRoom(); };
+}
+function newRoom() { localStorage.removeItem("rp_t"); token = null; history.replaceState(null, "", location.pathname); renderStart(); }
 function render() {
   paintLang();
   const s = S, out = [];
   const link = location.origin + "/?code=" + s.code;
   const P = esc(s.partner ? s.partner.name : "");
+  if (s.phase !== "ended") out.push(\`<div class="topbar"><span class="muted">\${t("Phòng {0}", s.code)}\${s.partner ? " · " + t("với {0}", P) : ""}</span><button class="danger" onclick="askLeave()">\${s.partner ? t("Rời phòng") : t("Huỷ phòng")}</button></div>\`);
+  if (s.phase === "ended") {
+    out.push(\`<div class="banner"><b>\${t("{0} đã rời phòng.", P)}</b><br>\${s.sprint ? t("Chuỗi đọc chung của hai bạn dừng ở {0} ngày.", s.streak) : t("Phòng này đã đóng.")}<br><button onclick="newRoom()">\${t("Tạo phòng mới")}</button></div>\`);
+    if (s.sprint) out.push(\`<div class="card"><h2>\${t("Tổng kết")}</h2><div class="big">\${s.streak}</div><div class="sub">\${t("ngày chuỗi đọc chung")}</div>
+      <p>\${t("Bạn")}: \${s.me.progress}% \${t("sách")} · \${t("{0} phút", s.me.minutes)}<br>\${P}: \${s.partner.progress}% \${t("sách")} · \${t("{0} phút", s.partner.minutes)}</p></div>\`);
+    $("#app").innerHTML = out.join("");
+    return;
+  }
   if (s.phase === "waiting") {
     out.push(\`<div class="card"><h2>\${t("Mã mời của bạn")}</h2><div class="code">\${s.code}</div>
       <p class="muted">\${t("Gửi mã hoặc link này cho bạn đọc. Phòng khoá khi đủ 2 người. Sprint: {0} ngày.", s.sprint_days)}</p>
@@ -334,7 +377,7 @@ function render() {
     <li>\${t("Đọc như bình thường. Highlight mới tự gửi, hoặc chọn chữ → <b>Chia sẻ Dual Page</b>.")}</li></ol></details>
     <p class="muted">\${t("Chỉ cài một lần cho mỗi máy. Sau này đổi phòng không cần chép lại.")}</p>
     <p class="muted">\${t("Màn hình chờ trên máy sẽ trông như thế này:")}</p><img class="prev" src="/d/\${token}/sleep.bmp?v=\${s.now}&l=\${LANG}" alt="\${t("Xem trước màn hình chờ")}"></div>\`);
-  out.push(\`<p class="muted">\${t("Cập nhật lúc {0}", s.updated_label)} · <a href="#" onclick="load();return false">\${t("Làm mới")}</a> · <a href="#" onclick="if(confirm(t('Rời phòng này để tạo hoặc tham gia phòng khác? Dữ liệu phòng vẫn còn, vào lại bằng link có #t=.'))){localStorage.removeItem('rp_t');location.href='/'};return false">\${t("Đổi phòng")}</a><br>\${t("Link riêng của bạn (mở trên máy khác):")} <input readonly value="\${location.origin}/#t=\${token}" onclick="this.select()"></p>\`);
+  out.push(\`<p class="muted">\${t("Cập nhật lúc {0}", s.updated_label)} · <a href="#" onclick="load();return false">\${t("Làm mới")}</a><br>\${t("Link riêng của bạn (mở trên máy khác):")} <input readonly value="\${location.origin}/#t=\${token}" onclick="this.select()"></p>\`);
   $("#app").innerHTML = out.join("");
 }
 load();

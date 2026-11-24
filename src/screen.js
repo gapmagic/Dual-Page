@@ -2,6 +2,7 @@
 import { Canvas, W } from "./bmp.js";
 
 const M = 28; // side margin
+const HOST = "dualpage.online";
 let EN = false; // set per render from the viewer's language
 const L = (vi, en) => (EN ? en : vi);
 
@@ -45,6 +46,7 @@ export function renderScreen(s) {
   }
 
   if (s.phase === "recap") return renderRecap(c, s);
+  if (s.phase === "ended") return renderEnded(c, s);
 
   const quote = s.partner.shared;
   const compact = !!(quote || s.me.nudged);
@@ -108,6 +110,27 @@ export function renderScreen(s) {
     const end = c.wrap(M + 6, y + 46, `“${quote.text}”`, W - 2 * M - 12, "body", maxLines);
     c.frame(M - 8, boxTop, W - 2 * (M - 8), end - boxTop + 8, 2);
   }
+  footer(c, s);
+  return c;
+}
+
+// The partner left: final streak and progress, and how to start over.
+function renderEnded(c, s) {
+  let y = s.book ? 140 : 110;
+  c.center(y, trim(c, L(`${s.partner.name} đã rời phòng`, `${s.partner.name} left the room`), W - 2 * M), "bold");
+  if (s.sprint) {
+    const n = String(s.streak);
+    c.text(Math.round((W - c.textWidth(n, "big")) / 2), y + 50, n, "big");
+    c.center(y + 210, L("ngày chuỗi đọc chung", "day reading streak"), "bold");
+    y += 270;
+    c.rect(M, y, W - 2 * M, 1);
+    c.text(M, y + 20, L(`Bạn: ${s.me.progress}% sách`, `You: ${s.me.progress}% of the book`), "body");
+    c.text(M, y + 60, trim(c, `${s.partner.name}: ` + L(`${s.partner.progress}% sách`, `${s.partner.progress}% of the book`), W - 2 * M), "body");
+    y += 110;
+    c.rect(M, y, W - 2 * M, 1);
+    y += 20;
+  } else y += 70;
+  c.wrap(M, y, L(`Mở ${HOST} để tạo phòng mới với bạn đọc khác. Không cần cài lại plugin.`, `Open ${HOST} to create a new room with another reader. No need to reinstall the plugin.`), W - 2 * M, "body", 4);
   footer(c, s);
   return c;
 }

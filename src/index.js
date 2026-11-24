@@ -6,6 +6,7 @@ import { koPluginFiles, KO_VERSION, KO_MAIN } from "./koplugin.js";
 import { PAGE } from "./web.js";
 
 const DAY = 86400;
+const HOST = "dualpage.online";
 const json = (o, status = 200) =>
   new Response(JSON.stringify(o), { status, headers: { "content-type": "application/json; charset=utf-8", "access-control-allow-origin": "*" } });
 const text = (s, status = 200) => new Response(s, { status, headers: { "content-type": "text/plain; charset=utf-8" } });
@@ -127,7 +128,7 @@ async function api(req, env, url, route) {
     if (!name) return bad("Cần nhập tên");
     const code = String(body.code || "").toUpperCase().replace(/\s/g, "").replace(/^XTE-?/, "XTE-");
     const room = await db.prepare("SELECT * FROM rooms WHERE code = ?").bind(code).first();
-    if (!room) return bad("Không tìm thấy mã mời này", 404);
+    if (!room || room.closed_ts) return bad("Không tìm thấy mã mời này", 404);
     const n = await db.prepare("SELECT COUNT(*) AS n FROM members WHERE room_id = ?").bind(room.id).first();
     if (n.n >= 2) return bad("Phòng này đã đủ 2 người", 409);
     const memberToken = randomHex(16);
@@ -143,6 +144,9 @@ async function api(req, env, url, route) {
   if (!me) return bad("Không hợp lệ hoặc đã hết hạn", 401);
   const room = await db.prepare("SELECT * FROM rooms WHERE id = ?").bind(me.room_id).first();
   const partner = await db.prepare("SELECT * FROM members WHERE room_id = ? AND id != ?").bind(me.room_id, me.id).first();
+
+  // A closed room (the partner left) is read-only.
+  if (room.closed_ts && !["lang", "state", "device", "leave"].includes(route)) return bad("Bạn đọc kia đã rời phòng. Hãy tạo phòng mới.", 409);
 
   switch (route) {
     case "lang": {
@@ -167,6 +171,21 @@ async function api(req, env, url, route) {
         await db.prepare("INSERT INTO devices (token, member_id, created_at) VALUES (?, ?, ?)").bind(d, me.id, now()).run();
       } else await db.prepare("UPDATE devices SET member_id = ? WHERE token = ?").bind(me.id, d).run();
       return json({ d });
+    }
+
+    case "leave": {
+      if (req.method !== "POST") return bad("POST only", 405);
+      const t = now();
+      await db.batch([
+        db.prepare("UPDATE members SET left_ts = ? WHERE id = ?").bind(t, me.id),
+        db.prepare("UPDATE rooms SET closed_ts = ? WHERE id = ?").bind(t, room.id),
+        db.prepare("UPDATE devices SET member_id = NULL WHERE member_id = ?").bind(me.id),
+      ]);
+      if (room.book_file) {
+        await env.BOOKS.delete("book:" + room.id);
+        await db.prepare("UPDATE rooms SET book_file = NULL, book_size = NULL WHERE id = ?").bind(room.id).run();
+      }
+      return json({ ok: true });
     }
 
     case "accept": {
@@ -290,7 +309,7 @@ async function memberForDevice(db, token) {
   if (!token || token.length < 16) return { known: false, me: null };
   const dev = await db.prepare("SELECT member_id FROM devices WHERE token = ?").bind(token).first();
   if (dev) {
-    const me = dev.member_id ? await db.prepare("SELECT * FROM members WHERE id = ?").bind(dev.member_id).first() : null;
+    const me = dev.member_id ? await db.prepare("SELECT * FROM members WHERE id = ? AND left_ts IS NULL").bind(dev.member_id).first() : null;
     return { known: true, me };
   }
   const me = await loadMember(db, token);
@@ -519,6 +538,12 @@ async function homeSections(db, me, opts = {}) {
     }
   };
 
+  if (s.phase === "ended") {
+    section("today", L(`${P} đã rời phòng`, `${P} left the room`), s.sprint ? L(`Chuỗi dừng ở ${s.streak} ngày`, `Streak ended at ${s.streak} days`) : "");
+    info(L(`${P} đã rời phòng`, `${P} left the room`), (s.sprint ? L(`Chuỗi đọc chung dừng ở ${s.streak} ngày. `, `Your shared streak ended at ${s.streak} days. `) : "") + L(`Mở ${HOST} để tạo phòng mới.`, `Open ${HOST} to create a new room.`));
+    if (s.sprint) info(L(`Tổng kết: ${s.streak} ngày`, `Summary: ${s.streak} days`), L(`Bạn: ${s.me.progress}% sách. ${P}: ${s.partner.progress}% sách.`, `You: ${s.me.progress}% of the book. ${P}: ${s.partner.progress}%.`));
+    return { s, sections };
+  }
   if (s.phase === "waiting") {
     section("today", L("Chờ bạn đọc vào phòng", "Waiting for your partner"), L(`Mã mời ${s.code}`, `Invite code ${s.code}`));
     info(L(`Mã mời: ${s.code}`, `Invite code: ${s.code}`), L(`Gửi mã cho bạn đọc. Sprint ${s.sprint_days} ngày bắt đầu khi bạn ấy vào phòng và đồng ý.`, `Send it to your reading partner. The ${s.sprint_days}-day sprint starts when they join and accept.`));

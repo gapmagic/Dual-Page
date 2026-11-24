@@ -74,7 +74,8 @@ function memberDays(m, rows, room) {
 
 export async function loadMember(db, token) {
   if (!token || token.length < 16) return null;
-  return db.prepare("SELECT * FROM members WHERE token = ?").bind(token).first();
+  const m = await db.prepare("SELECT * FROM members WHERE token = ?").bind(token).first();
+  return m && !m.left_ts ? m : null; // a reader who left the room is out of it for good
 }
 
 export async function computeState(db, me) {
@@ -153,7 +154,9 @@ export async function computeState(db, me) {
   if (phase === "active" && vp) {
     const startDay = localDay(room.start_ts, me.tz);
     const endDay = addDays(startDay, sprintTotalDays(room) - 1);
-    const lastDay = today < endDay ? today : endDay;
+    const closedDay = room.closed_ts ? localDay(room.closed_ts, me.tz) : null;
+    let lastDay = today < endDay ? today : endDay;
+    if (closedDay && closedDay < lastDay) lastDay = closedDay;
     for (let d = lastDay; d >= startDay; d = addDays(d, -1)) {
       if (vm.d.done(d) && vp.d.done(d)) streak++;
       else if (d === today) continue;
@@ -164,7 +167,7 @@ export async function computeState(db, me) {
     const dayIndex = Math.min(total, dayDiff(startDay, today) + 1);
     const bothFinished = me.finished_ts && partner.finished_ts;
     const over = t >= room.end_ts;
-    if (bothFinished || over) phase = "recap";
+    if ((bothFinished || over) && !room.closed_ts) phase = "recap";
     sprint = {
       total_days: total,
       day: dayIndex,
@@ -187,6 +190,12 @@ export async function computeState(db, me) {
         partner: { name: partner.name, pages_pct: pct(partner.bp - (partner.baseline_bp || 0)), minutes: vp.out.minutes, quote: qFor(partner) },
       };
     }
+  }
+
+  // The partner left: the room is closed and shows a final summary.
+  if (room.closed_ts) {
+    if (sprint && sprint.recap === undefined) sprint.recap = null;
+    phase = "ended";
   }
 
   return {
