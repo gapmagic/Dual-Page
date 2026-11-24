@@ -91,15 +91,48 @@ export class Canvas {
     const f = Math.max(0, Math.min(1, frac));
     this.rect(x + 4, y + 4, Math.round((w - 8) * f), h - 8);
   }
-  // 1-bit grayscale PNG, upscaled (nearest neighbour, stays crisp) (KOReader sleep screen).
-  async toPNG(scale = 1) {
-    const w = Math.round(W * scale), h = Math.round(H * scale);
-    const rb = (w + 7) >> 3;
-    const raw = new Uint8Array((rb + 1) * h);
+  // 8-bit grayscale PNG at exactly outW x outH (KOReader sleep screen). The
+  // 480x800 layout is scaled to fit and centred; the header band runs the full
+  // width. Area-averaged scaling keeps text smooth at any (non-integer) scale,
+  // and an exact-size image means KOReader shows it 1:1 without re-scaling.
+  async toPNG(outW = W, outH = H) {
+    const w = Math.max(1, Math.min(2400, Math.round(outW))), h = Math.max(1, Math.min(2400, Math.round(outH)));
+    const s = Math.min(w / W, h / H);
+    const ox = (w - W * s) / 2, oy = (h - H * s) / 2;
+    const band = this.band || 0;
+    // For each output column/row: the source cells it covers and their weights.
+    const taps = (n, off, max) => {
+      const out = [];
+      for (let o = 0; o < n; o++) {
+        const a = (o - off) / s, b = (o + 1 - off) / s, t = [];
+        for (let i = Math.floor(a); i < b; i++) {
+          const wgt = Math.min(b, i + 1) - Math.max(a, i);
+          if (wgt > 1e-6) t.push(i, wgt * s);
+        }
+        out.push(t);
+      }
+      return out;
+    };
+    const tx = taps(w, ox), ty = taps(h, oy);
+    const px = this.px;
+    const raw = new Uint8Array((w + 1) * h);
     for (let y = 0; y < h; y++) {
-      const sy = Math.min(H - 1, (y / scale) | 0);
-      const row = y * (rb + 1) + 1;
-      for (let x = 0; x < w; x++) if (!this.px[sy * W + Math.min(W - 1, (x / scale) | 0)]) raw[row + (x >> 3)] |= 0x80 >> (x & 7);
+      const row = y * (w + 1) + 1;
+      const yt = ty[y];
+      for (let x = 0; x < w; x++) {
+        const xt = tx[x];
+        let black = 0;
+        for (let j = 0; j < yt.length; j += 2) {
+          const sy = yt[j];
+          if (sy < 0 || sy >= H) continue;
+          for (let i = 0; i < xt.length; i += 2) {
+            const sx = xt[i];
+            const v = sx >= 0 && sx < W ? px[sy * W + sx] : sy < band ? 1 : 0;
+            if (v) black += yt[j + 1] * xt[i + 1];
+          }
+        }
+        raw[row + x] = 255 - Math.min(255, Math.round(black * 255));
+      }
     }
     const z = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream("deflate"))).arrayBuffer());
     const chunk = (type, data) => {
@@ -115,7 +148,7 @@ export class Canvas {
     const dv = new DataView(ihdr.buffer);
     dv.setUint32(0, w);
     dv.setUint32(4, h);
-    ihdr.set([1, 0, 0, 0, 0], 8);
+    ihdr.set([8, 0, 0, 0, 0], 8);
     const parts = [new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]), chunk("IHDR", ihdr), chunk("IDAT", z), chunk("IEND", new Uint8Array(0))];
     const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
     let o = 0;

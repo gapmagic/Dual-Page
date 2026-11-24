@@ -16,6 +16,7 @@ function statusLine(p) {
 export function renderScreen(s) {
   EN = s.me && s.me.lang === "en";
   const c = new Canvas();
+  c.band = 64; // header band height, extended to the full width on wider screens
   // header band
   c.rect(0, 0, W, 64);
   c.center(16, "DUAL PAGE", "bold", 0);
@@ -158,6 +159,7 @@ function footer(c, s) {
 export function renderNoRoom(origin, lang) {
   EN = lang === "en";
   const c = new Canvas();
+  c.band = 64;
   c.rect(0, 0, W, 64);
   c.center(16, "DUAL PAGE", "bold", 0);
   c.center(240, L("Máy chưa vào phòng nào", "This reader isn't in a room"), "bold");

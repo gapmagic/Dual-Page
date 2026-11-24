@@ -443,8 +443,7 @@ async function device(req, env, url, rest) {
 async function png(canvas, url) {
   const w = Number(url.searchParams.get("w")) || 480;
   const h = Number(url.searchParams.get("h")) || 800;
-  const scale = Math.max(1, Math.min(4, Math.min(w / 480, h / 800)));
-  return new Response(await canvas.toPNG(scale), { headers: { "content-type": "image/png", "cache-control": "no-store" } });
+  return new Response(await canvas.toPNG(w, h), { headers: { "content-type": "image/png", "cache-control": "no-store" } });
 }
 
 // On-device menu, grouped into sections. CrossPoint shows each section as a list
