@@ -29,7 +29,7 @@
 
 | Waiting for partner | Waiting to start | Reading | Nudged + extension | Recap |
 |---|---|---|---|---|
-| ![](docs/img/eink-01-waiting.png) | ![](docs/img/eink-02-pending.png) | ![](docs/img/eink-03-active.png) | ![](docs/img/eink-04-nudged-ext.png) | ![](docs/img/eink-05-recap.png) |
+| ![](docs/img/en/eink-01-waiting.png) | ![](docs/img/en/eink-02-pending.png) | ![](docs/img/en/eink-03-active.png) | ![](docs/img/en/eink-04-nudged-ext.png) | ![](docs/img/en/eink-05-recap.png) |
 
 The server draws a BMP with a built-in font (full Vietnamese diacritics), and the screen only changes when the reader sleeps, so it costs almost no battery.
 
@@ -37,15 +37,15 @@ The server draws a BMP with a built-in font (full Vietnamese diacritics), and th
 
 | Create a room | Join | Waiting for partner |
 |---|---|---|
-| ![](docs/img/web-01-create.png) | ![](docs/img/web-02-join.png) | ![](docs/img/web-03-waiting.png) |
+| ![](docs/img/en/web-01-create.png) | ![](docs/img/en/web-02-join.png) | ![](docs/img/en/web-03-waiting.png) |
 
 | Host waiting to start | Partner accepts the sprint |
 |---|---|
-| ![](docs/img/web-04-pending-host.png) | ![](docs/img/web-05-pending-guest.png) |
+| ![](docs/img/en/web-04-pending-host.png) | ![](docs/img/en/web-05-pending-guest.png) |
 
 | Reading | Nudged + extension request | Recap |
 |---|---|---|
-| ![](docs/img/web-06-active.png) | ![](docs/img/web-07-nudged-ext.png) | ![](docs/img/web-08-recap.png) |
+| ![](docs/img/en/web-06-active.png) | ![](docs/img/en/web-07-nudged-ext.png) | ![](docs/img/en/web-08-recap.png) |
 
 ### Reader menu (Home → Plugins → Dual Page)
 
