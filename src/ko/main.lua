@@ -549,13 +549,28 @@ function DualPage:askExtension(sec)
 end
 
 function DualPage:downloadBook(name)
-    local home = G_reader_settings:readSetting("home_dir") or Device.home_dir or DataStorage:getDataDir()
-    -- Straight into KOReader's home folder, next to the reader's other books.
-    local dest = home .. "/" .. name
-    -- Already downloaded (here, or in the DualPage folder older versions used): just open it.
     local lfs = require("libs/libkoreader-lfs")
-    local old = home .. "/DualPage/" .. name
-    if not lfs.attributes(dest, "size") and (lfs.attributes(old, "size") or 0) > 0 then dest = old end
+    local isdir = function(p) return p and lfs.attributes(p, "mode") == "directory" end
+    -- KOReader's home folder if the reader set one. Otherwise the device's
+    -- books folder: on Kindle that is /mnt/us/documents (KOReader's default
+    -- there is /mnt/us, which is not where people look for books).
+    local home = G_reader_settings:readSetting("home_dir")
+    if not isdir(home) then
+        home = nil
+        local root = Device.home_dir
+        for _, d in ipairs({ root and (root .. "/documents"), root and (root .. "/Documents"), root }) do
+            if isdir(d) then home = d break end
+        end
+        home = home or DataStorage:getDataDir()
+    end
+    local dest = home .. "/" .. name
+    -- Already downloaded (here, or where older versions saved it): just open it.
+    if not lfs.attributes(dest, "size") then
+        local root = Device.home_dir or home
+        for _, old in ipairs({ home .. "/DualPage/" .. name, root .. "/DualPage/" .. name, root .. "/" .. name }) do
+            if (lfs.attributes(old, "size") or 0) > 0 then dest = old break end
+        end
+    end
     local size = lfs.attributes(dest, "size")
     if size and size > 0 then
         if self.ui.document and self.ui.document.file == dest then
@@ -569,11 +584,10 @@ function DualPage:downloadBook(name)
     UIManager:scheduleIn(1, function()
         local ok = request("GET", "act/" .. util.urlEncode(name), nil, nil, dest)
         if not ok then
-            os.remove(dest)
-            UIManager:show(InfoMessage:new{ text = L("Tải sách không thành công.", "Download failed.") })
+            UIManager:show(InfoMessage:new{ text = L("Tải sách không thành công. Không lưu được vào ", "Download failed. Couldn't save to ") .. home })
             return
         end
-        UIManager:show(Notification:new{ text = L("Đã lưu vào thư mục sách của KOReader. Đang mở…", "Saved to your KOReader books folder. Opening…") })
+        UIManager:show(Notification:new{ text = L("Đã lưu: ", "Saved: ") .. dest })
         self:openBook(dest)
     end)
 end
