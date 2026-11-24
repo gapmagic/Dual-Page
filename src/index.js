@@ -549,7 +549,7 @@ async function homeSections(db, me, opts = {}) {
   } else {
     // CrossPoint rows cannot open a keyboard; its Search box (magnifier in the
     // header) is the number entry, answered by /search.
-    info(L("Gia hạn: bấm kính lúp ở thanh trên, gõ số ngày", "To extend: tap the magnifier at the top, type the days"), dayLine + ". " + goal);
+    info(L("Bấm kính lúp ở trên để nhập số ngày muốn gia hạn", "Tap the magnifier at the top to enter how many days to extend"), "");
   }
   return { s, sections };
 }

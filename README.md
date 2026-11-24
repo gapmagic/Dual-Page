@@ -59,7 +59,7 @@ Nhắc Minh đọc                        Lời nhắc hiện khi bạn ấy m�
 Minh chia sẻ: “Hạnh phúc không phụ thuộc vào …”
 Câu bạn đang chia sẻ: “Huyền thoại, tôn giáo và tiền bạc …”
 Chia sẻ: “Chúng ta không thuần hoá lúa mì. …”   Chương 5
-Gia hạn: bấm kính lúp ở thanh trên, gõ số ngày
+Bấm kính lúp ở trên để nhập số ngày muốn gia hạn
 ```
 
 ---

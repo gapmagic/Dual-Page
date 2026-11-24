@@ -163,7 +163,7 @@ Màn hình chờ của bạn đọc đổi sang câu mới vào lần kế tiế
 **Gia hạn sprint**
 - Một người đề nghị gia hạn thêm **số ngày tuỳ chọn** (1–30) trên máy hoặc web.
   - Trên web: nhập số ngày vào ô "Số ngày" rồi bấm **Đề nghị**.
-  - Trên XTeink: mở Plugins → Dual Page, bấm **biểu tượng kính lúp** ở thanh tiêu đề (máy không cảm ứng: chọn dòng đầu tiên rồi bấm nút Trái), gõ số ngày (ví dụ `5`), rồi chọn **» Đề nghị gia hạn +5 ngày**. Dòng "Gia hạn: bấm kính lúp…" trong mục chỉ là lời nhắc, bấm vào không mở bàn phím. Cần plugin bản 0.3.1 trở lên (tải lại plugin trên web một lần).
+  - Trên XTeink: mở Plugins → Dual Page, bấm **biểu tượng kính lúp** ở thanh tiêu đề (máy không cảm ứng: chọn dòng đầu tiên rồi bấm nút Trái), gõ số ngày (ví dụ `5`), rồi chọn **» Đề nghị gia hạn +5 ngày**. Dòng "Bấm kính lúp ở trên để nhập số ngày muốn gia hạn" trong mục chỉ là lời nhắc, bấm vào không mở bàn phím. Cần plugin bản 0.3.1 trở lên (tải lại plugin trên web một lần).
   - Trên KOReader: chọn **» Đề nghị gia hạn…** rồi nhập số ngày.
 - Người kia bấm **Đồng ý** hoặc **Từ chối**. Chỉ gia hạn khi cả hai đồng ý.
 
