@@ -297,12 +297,12 @@ function DualPage:onNetworkConnected()
 end
 
 -- ---------- self-update ----------
--- Asks the server for the current plugin version (at most every few hours) and,
+-- Asks the server for the current plugin version (at most every 30 minutes) and,
 -- if it changed, replaces main.lua in place. The new code runs after a restart.
 function DualPage:checkUpdate(force)
     if not self.path or PLUGIN_VERSION == "dev" or self.updated then return end
     local now = os.time()
-    if not force and now - (self.store:readSetting("update_check") or 0) < 3 * 3600 then return end
+    if not force and now - (self.store:readSetting("update_check") or 0) < 1800 then return end
     self.store:saveSetting("update_check", now)
     self.store:flush()
     local v = request("GET", "ko/version")
@@ -370,7 +370,7 @@ end
 -- While the device is awake and online: every few minutes, check for a nudge
 -- (shown as a popup right away) and keep the sleep image current, so a nudge
 -- or the partner's progress is on the next sleep screen.
-local POLL_EVERY = 180
+local POLL_EVERY = 60
 function DualPage:startPolling()
     if self.poll_task then return end
     self.poll_task = function()
@@ -381,6 +381,7 @@ function DualPage:startPolling()
 end
 
 function DualPage:poll()
+    self:checkUpdate()
     local res = request("GET", "ping")
     local ok, data = pcall(json.decode, res or "")
     if not (ok and type(data) == "table") then return end
@@ -393,7 +394,11 @@ function DualPage:poll()
             timeout = 8,
         })
     end
-    self:refreshScreen()
+    -- Download the sleep screen only when it would look different.
+    local sig = data.sig and tostring(data.sig) or nil
+    if not sig or sig ~= self.screen_sig then
+        if self:refreshScreen() then self.screen_sig = sig end
+    end
 end
 
 function DualPage:onCloseWidget()

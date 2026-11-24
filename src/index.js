@@ -299,6 +299,12 @@ async function startSprint(db, room) {
 // Short code a reader can type in its own KOReader Sync settings as the
 // username, instead of the 32-character device token.
 const SYNC_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function sigOf(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 0x01000193) >>> 0;
+  return h.toString(16);
+}
+
 async function syncCodeFor(db, deviceToken) {
   const row = await db.prepare("SELECT sync_code, kosync_ts FROM devices WHERE token = ?").bind(deviceToken).first();
   if (!row) return null;
@@ -417,7 +423,11 @@ async function device(req, env, url, rest) {
   if (action === "ping") {
     const live = me.nudged_ts && now() - me.nudged_ts < 12 * 3600;
     const p = live ? await db.prepare("SELECT name FROM members WHERE room_id = ? AND id != ?").bind(me.room_id, me.id).first() : null;
-    return json({ nudge: live ? { at: me.nudged_ts, from: p ? p.name : "" } : null });
+    // sig changes whenever the sleep screen would look different, so the
+    // plugin only downloads a new image when something changed.
+    const st = await computeState(db, me);
+    const { now: _n, ...rest } = st;
+    return json({ nudge: live ? { at: me.nudged_ts, from: p ? p.name : "" } : null, sig: sigOf(JSON.stringify(rest)) });
   }
   if (action === "ko/main.lua") return new Response(KO_MAIN, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
 
