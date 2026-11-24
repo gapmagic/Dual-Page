@@ -630,9 +630,9 @@ async function homeSections(db, me, opts = {}) {
   // Earlier quotes get their own lists in the main menu (no sub-lists on XTeink).
   const ph = s.partner.shared_history, mh = s.me.shared_history;
   const stamp = (x) => [x.when, x.chapter].filter(Boolean).join(" · ");
-  if (s.partner.shared) info(L(`${P} chia sẻ với bạn`, `${P} shared with you`) + " · " + stamp(s.partner.shared), `“${s.partner.shared.text}”`);
+  if (s.partner.shared) info(L(`${P} chia sẻ với bạn`, `${P} shared with you`) + (s.partner.shared.when ? " · " + s.partner.shared.when : ""), `“${s.partner.shared.text}”`);
   else info(L(`${P} chia sẻ với bạn`, `${P} shared with you`), L(`${P} chưa chia sẻ câu nào.`, `${P} hasn't shared a quote yet.`));
-  if (s.me.shared) info(L(`Bạn chia sẻ với ${P}`, `You shared with ${P}`) + " · " + stamp(s.me.shared), `“${s.me.shared.text}”`);
+  if (s.me.shared) info(L(`Bạn chia sẻ với ${P}`, `You shared with ${P}`) + (s.me.shared.when ? " · " + s.me.shared.when : ""), `“${s.me.shared.text}”`);
   if (ph.length || mh.length)
     info(
       L("Các câu trước đó", "Earlier quotes"),
