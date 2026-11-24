@@ -98,7 +98,7 @@ To stop using the Dual Page sleep screen, untick **Use Dual Page sleep screen**.
 ## 4. Reading every day
 
 1. Open the **shared book** and read as usual. Only the shared book counts. Other books are fine, they just don't count.
-2. If the room creator uploaded the epub, open the Dual Page menu on your reader → **Shared book** → **Download the shared book**. It's saved to a `DualPage` folder.
+2. If the room creator uploaded the epub, open the Dual Page menu on your reader → **Shared book** → **Download the shared book**. It's saved to a `DualPage` folder. The first time, open it from **Home → File browser → DualPage**. A book you haven't opened yet may sit at the bottom of the Library; once you read it, it moves to Recent.
 3. With Wi-Fi on, progress is sent automatically:
    - **XTeink:** after each reading session, when the reader sleeps.
    - **KOReader:** while reading (about every 10 minutes), when you close the book, and when the device sleeps. To send right away: **Dual Page → Send progress and refresh sleep screen**.

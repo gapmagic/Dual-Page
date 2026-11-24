@@ -102,7 +102,7 @@ Tắt màn hình chờ Dual Page: bỏ chọn **Dùng màn hình chờ Dual Page
 ## 4. Đọc hằng ngày
 
 1. Mở **sách chung** và đọc như bình thường. Chỉ sách chung được tính tiến độ. Bạn vẫn đọc sách khác thoải mái, chúng chỉ không được tính.
-2. Nếu người tạo phòng đã tải epub lên, mở menu Dual Page trên máy và chọn **Tải sách chung về máy**. Sách được lưu vào thư mục `DualPage`.
+2. Nếu người tạo phòng đã tải epub lên, mở menu Dual Page trên máy và chọn **Tải sách chung về máy**. Sách được lưu vào thư mục `DualPage`. Lần đầu, mở sách bằng **Home → Duyệt file → DualPage**. Sách mới tải chưa mở lần nào có thể nằm cuối Thư viện; đọc một lần là sách lên mục Gần đây.
 3. Khi máy có Wi-Fi, tiến độ được gửi tự động:
    - **XTeink:** sau mỗi phiên đọc, lúc máy đi ngủ.
    - **KOReader:** trong lúc đọc (khoảng 10 phút một lần), khi đóng sách và khi máy đi ngủ. Muốn gửi ngay thì vào **Dual Page → Gửi tiến độ và cập nhật màn hình chờ**.

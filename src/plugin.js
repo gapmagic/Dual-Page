@@ -74,7 +74,7 @@ Bật chia sẻ câu highlight (một lần):
 Cách dùng:
 - Cứ đọc như bình thường. Khi thoát sách hoặc cho máy ngủ, tiến độ tự gửi lên và màn hình chờ cập nhật chuỗi đọc, trạng thái bạn đọc.
 - Chỉ sách chung của phòng được tính vào tiến độ. Đọc sách riêng thoải mái, không ảnh hưởng gì.
-- Nếu phòng có file sách chung: Home → Plugins → Dual Page → "Tải sách chung về máy" (lưu vào thư mục DualPage).
+- Nếu phòng có file sách chung: Home → Plugins → Dual Page → "Tải sách chung về máy" (lưu vào thư mục DualPage). Lần đầu, mở sách bằng Home → Duyệt file → DualPage; sau đó sách hiện ở mục Gần đây.
 - Highlight câu hay trong sách chung (giữ Confirm → Clip). Khi máy ngủ, câu mới nhất tự hiện trên màn hình chờ của bạn đọc (tối đa 140 ký tự). Muốn chia sẻ câu khác: Plugins → Dual Page → chọn "Chia sẻ: …".
 - Home → Plugins → Dual Page: xem trạng thái (mở lại để làm mới), nhắc bạn đọc, gia hạn sprint.
 `;
@@ -95,7 +95,7 @@ Turn on highlight sharing (once):
 How to use:
 - Just read. When you leave a book or the reader sleeps, progress is sent and the sleep screen updates your streak and your partner's status.
 - Only the room's shared book counts. Other books are fine, they just don't count.
-- If the room has a book file: Home → Plugins → Dual Page → Shared book → "Download the shared book" (saved to the DualPage folder).
+- If the room has a book file: Home → Plugins → Dual Page → Shared book → "Download the shared book" (saved to the DualPage folder). The first time, open it from Home → File browser → DualPage; after that it shows under Recent.
 - Highlight great lines in the shared book (hold Confirm → Clip). Your newest highlight shows on your partner's sleep screen (up to 140 characters). To share another: Dual Page → Highlights → "Share: …".
 - Home → Plugins → Dual Page: Today, Highlights, Shared book, Sprint & extension. Nudge your partner or extend the sprint from there.
 `;
