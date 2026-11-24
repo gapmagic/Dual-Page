@@ -151,7 +151,7 @@ Không có Wi-Fi cũng không sao. Máy giữ lại và gửi khi có mạng.
 
 Mỗi lần bạn highlight trong sách chung, câu đó được gửi về Dual Page. **Câu mới nhất tự hiện trên màn hình chờ của bạn đọc.**
 
-**XTeink:** máy chỉ gửi highlight khi bạn đồng bộ. Highlight xong, bấm nút chọn (**Confirm**, nút dùng để chọn trong menu) để mở menu trong sách → **Sync Progress**. Muốn nhanh hơn: vào **Settings → Controls → Long-Press Menu**, chọn **CrossPoint Sync**. Từ đó giữ nút Confirm khi đang đọc là đồng bộ luôn. Cần đã bật chia sẻ highlight ở bước cài đặt. KOReader thì gửi ngay, không cần làm gì thêm. Câu dài hơn 140 ký tự được rút gọn để vừa màn hình.
+**XTeink:** máy chỉ gửi highlight khi bạn đồng bộ. Highlight xong, bấm nút chọn (**Confirm**, nút dùng để chọn trong menu) để mở menu trong sách → **Sync Progress**. Muốn nhanh hơn: vào **Settings → Controls → Long-Press Menu**, chọn **CrossPoint Sync**. Từ đó giữ nút Confirm khi đang đọc là đồng bộ luôn. **X4 Pro (cảm ứng):** vào **Settings → Controls → Home Button Gestures**, đặt **Double Tap = CrossPoint Sync**. Đang đọc chỉ cần chạm đúp phím Home. Cần đã bật chia sẻ highlight ở bước cài đặt. KOReader thì gửi ngay, không cần làm gì thêm. Câu dài hơn 140 ký tự được rút gọn để vừa màn hình.
 
 Muốn chọn một câu khác:
 - **Trên máy:** mở menu Dual Page, chọn một dòng **Chia sẻ: "…"**.

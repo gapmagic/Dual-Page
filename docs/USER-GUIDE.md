@@ -146,7 +146,7 @@ No Wi-Fi? No problem. The reader keeps the data and sends it when it's back onli
 
 Every highlight you make in the shared book is sent to Dual Page. **Your newest highlight automatically appears on your partner's sleep screen.** Lines longer than 140 characters are shortened to fit.
 
-**XTeink:** the reader only sends highlights when you sync. After highlighting, press **Confirm** (the button that selects in menus) to open the in-book menu → **Sync Progress**. Faster: set **Settings → Controls → Long-Press Menu** to **CrossPoint Sync**, then long-press Confirm while reading to sync. Highlight sharing must be turned on during setup. KOReader sends right away.
+**XTeink:** the reader only sends highlights when you sync. After highlighting, press **Confirm** (the button that selects in menus) to open the in-book menu → **Sync Progress**. Faster: set **Settings → Controls → Long-Press Menu** to **CrossPoint Sync**, then long-press Confirm while reading to sync. **X4 Pro (touch):** set **Settings → Controls → Home Button Gestures → Double Tap** to **CrossPoint Sync**, then double-tap Home while reading. Highlight sharing must be turned on during setup. KOReader sends right away.
 
 To share a different line:
 - **On the reader:** Dual Page menu → **Highlights** → a **Share: "…"** row.
