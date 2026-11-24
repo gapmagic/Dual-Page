@@ -72,7 +72,7 @@ The menu has 4 sections. Each title shows what's new, e.g. **Today · Sam nudged
 | Section | What's in it |
 |---|---|
 | **Today** | Reading streak, how much each of you read today, the nudge button, nudges you received |
-| **Highlights** | What your partner shared, what you're sharing, pick another line to share |
+| **Highlights** | What you're sharing, what your partner is sharing, and your partner's earlier quotes |
 | **Shared book** | Title, the file you're reading, download the shared book |
 | **Sprint & extension** | Day number, days left, daily goal, propose or accept an extension |
 
@@ -82,7 +82,7 @@ The menu has 4 sections. Each title shows what's new, e.g. **Today · Sam nudged
 
 ---
 
-> **Which rows do something?** In the Dual Page menu, rows starting with **»** are buttons (nudge, share a line, extend, download the book). Other rows are just information. On XTeink, pressing an info row shows "Download complete" and changes nothing.
+> **Which rows do something?** In the Dual Page menu, rows starting with **»** are buttons (nudge, extend, download the book). Other rows are just information. On XTeink, pressing an info row shows "Download complete" and changes nothing.
 
 ## 3. Set up a Kindle, Kobo… (KOReader)
 
@@ -144,7 +144,7 @@ No Wi-Fi? No problem. The reader keeps the data and sends it when it's back onli
 
 ## 5. Sharing highlights
 
-Highlights in the shared book are sent to Dual Page. **Your newest highlight automatically appears on your partner's sleep screen.** Quotes up to **300 characters** (about 2–3 sentences) show in full; longer ones are shortened. Long quotes use smaller text so they fit. Each reader keeps only their **3 latest highlights** (newly highlighted or re-shared). Older ones are dropped automatically.
+Highlights in the shared book are sent to Dual Page. **Your newest highlight automatically appears on your partner's sleep screen.** Quotes up to **300 characters** (about 2–3 sentences) show in full; longer ones are shortened. Long quotes use smaller text so they fit. Each reader keeps only their **3 latest highlights**; older ones are dropped automatically. Quotes you **shared** are kept separately: Dual Page saves each reader's **10 latest shared quotes** so you can both read them again under **Highlights**.
 
 ### XTeink
 
@@ -169,10 +169,18 @@ Highlight as usual; it's sent automatically when Wi-Fi is on. To share a line ri
 
   *The Share to Dual Page button in KOReader's highlight popup (illustration).*
 
-### Share a different line
+### Read shared quotes again
 
-- **On the reader:** Dual Page menu → **Highlights** → a **Share: "…"** row.
-- **On the website:** **Shared highlights** card → **share this one**.
+Open the Dual Page menu → **Highlights**. Once a quote is shared, that's it: there's no re-sharing.
+
+- **Kindle/Kobo (KOReader):** two parts, **You shared with …** on top and **… shared with you** below. Each shows the newest quote and a **See N earlier quotes ›** row that opens the older ones. Tap any quote to read it in full.
+- **XTeink:** one page. Your current quote first, then your partner's, then the **3 latest** quotes your partner shared before. Each quote shows up to 3 lines.
+
+  <img src="guide-en/10b-highlights-on-device.png" width="560" alt="Highlights on Kindle and XTeink">
+
+  *Highlights on Kindle (left) and XTeink (right), illustration.*
+
+**To share a different line:** highlight a new one in the shared book (on XTeink, remember **Sync Progress**), or on the website open the **Shared highlights** card and tap **share this one**.
 
   <img src="guide-en/08-highlights.png" width="360" alt="Shared highlights">
 
