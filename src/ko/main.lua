@@ -12,6 +12,7 @@ Same rooms as the XTeink/CrossPoint plugin: https://dualpage.online
 local DataStorage = require("datastorage")
 local Device = require("device")
 local ConfirmBox = require("ui/widget/confirmbox")
+local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
 local LuaSettings = require("luasettings")
 local Menu = require("ui/widget/menu")
@@ -136,6 +137,32 @@ function DualPage:onReaderReady()
     self.last_turn = os.time()
     self.active = 0
     self.last_push = os.time()
+    -- A fresh copy of the shared book (deleted, then downloaded again) opens at
+    -- the start: offer to jump back to where this reader got to.
+    if (self.start_pct or 0) < 0.01 and NetworkMgr:isConnected() then
+        UIManager:scheduleIn(1, function() self:offerResume() end)
+    end
+end
+
+function DualPage:offerResume()
+    local doc = self:getDigest()
+    if not doc then return end
+    local res = request("GET", "resume?doc=" .. doc)
+    local ok, data = pcall(json.decode, res or "")
+    local pct = ok and type(data) == "table" and tonumber(data.pct)
+    if not pct or pct < 1 or not self.ui.document then return end
+    local cur = (self:getPercent() or 0) * 100
+    if cur + 1 >= pct then return end
+    local shown = pct >= 10 and string.format("%d", math.floor(pct)) or string.format("%.1f", pct)
+    UIManager:show(ConfirmBox:new{
+        text = L("Bạn đã đọc tới " .. shown .. "% cuốn này. Mở tiếp từ chỗ đó?", "You got to " .. shown .. "% of this book. Continue from there?"),
+        ok_text = L("Đọc tiếp", "Continue"),
+        cancel_text = L("Ở lại đây", "Stay here"),
+        ok_callback = function()
+            self.ui:handleEvent(Event:new("GotoPercent", pct))
+            self.start_pct = self:getPercent()
+        end,
+    })
 end
 
 function DualPage:onPageUpdate()

@@ -353,6 +353,15 @@ async function device(req, env, url, rest) {
     return new Response(renderScreen(s).toBMP(), { headers: { "content-type": "image/bmp", "cache-control": "no-store" } });
   }
 
+  // KOReader: where this reader got to in the shared book, so a re-downloaded
+  // copy (whose on-device position was lost with the old file) can jump back.
+  if (action === "resume") {
+    const doc = url.searchParams.get("doc") || "";
+    const room = await db.prepare("SELECT book_doc FROM rooms WHERE id = ?").bind(me.room_id).first();
+    const ours = doc && (doc === room?.book_doc || doc === me.book_doc);
+    return json({ pct: ours && me.bp > 0 ? me.bp / 100 : null });
+  }
+
   if (action === "sleep.png") {
     const p = Number(url.searchParams.get("pct"));
     const book = url.searchParams.get("book");
@@ -596,11 +605,23 @@ async function kosync(req, env, url, route) {
   if (route === "users/create") return kj({ message: "Use dualpage.online" }, 402);
   if (!known) return kj({ message: "Unauthorized" }, 401);
   if (route === "users/auth") return kj({ authorized: "OK" });
+  // Reading position per reader and document, so a deleted and re-downloaded
+  // book can be pulled back to where it was (KOSync "pull" on the device).
   if (route === "syncs/progress" && req.method === "PUT") {
     const b = await req.json().catch(() => ({}));
-    return kj({ document: b.document || "", timestamp: now() });
+    const doc = String(b.document || "");
+    const ts = now();
+    if (me && /^[0-9a-f]{32}$/.test(doc)) {
+      const rec = { document: doc, progress: String(b.progress || ""), percentage: Number(b.percentage) || 0, device: String(b.device || ""), device_id: String(b.device_id || ""), timestamp: ts };
+      await env.BOOKS.put(`kosync:${me.id}:${doc}`, JSON.stringify(rec));
+    }
+    return kj({ document: doc, timestamp: ts });
   }
-  if (route.startsWith("syncs/progress/")) return kj({}, 404);
+  if (route.startsWith("syncs/progress/")) {
+    const doc = route.slice("syncs/progress/".length);
+    const rec = me && /^[0-9a-f]{32}$/.test(doc) ? await env.BOOKS.get(`kosync:${me.id}:${doc}`, "json") : null;
+    return rec ? kj(rec) : kj({}, 404);
+  }
 
   const m = route.match(/^api\/v1\/clippings\/([0-9a-f]{32})$/);
   if (m) {
