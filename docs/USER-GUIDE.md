@@ -148,10 +148,10 @@ Your partner's sleep screen switches to the new line the next time their reader 
   <img src="guide-en/14-sleep-nudged.png" width="240" alt="Sleep screen with a nudge">
 
 **Extending the sprint**
-- Either person proposes **+3 days**, **+7 days** or **any number of days** (1–30) on the reader or the website.
-  - Website: type the number into "Other (1–30 days)" and press **Propose**.
-  - XTeink: in Sprint & extension, tap **Search** at the top, type the number (e.g. `5`), then pick **» Propose +5 days**. Needs plugin 0.3.1 or later (download the plugin again from the website once).
-  - KOReader: pick **» Propose another number of days…** and type the number.
+- Either person proposes an extension of **any number of days** (1–30) on the reader or the website.
+  - Website: type the number into "Days (1–30)" and press **Propose**.
+  - XTeink: open Plugins → Dual Page, tap the **magnifier** in the title bar (no touch screen: select the top row and press Left), type the number (e.g. `5`), then pick **» Propose +5 days**. The "To extend: tap the magnifier…" row is only a reminder; pressing it doesn't open a keyboard. Needs plugin 0.3.1 or later (download the plugin again from the website once).
+  - KOReader: pick **» Propose an extension…** and type the number.
 - The other taps **Accept** or **Decline**. The sprint is only extended if both agree.
 
   <img src="guide-en/09-extend.png" width="360" alt="Extend the sprint">

@@ -535,16 +535,21 @@ async function homeSections(db, me, opts = {}) {
     L("Sprint và gia hạn", "Sprint & extension"),
     ext && !ext.by_me ? L(`${P} đề nghị +${ext.days} ngày`, `${P} asks for +${ext.days} days`) : L(`Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`, `Day ${s.sprint.day}/${s.sprint.total_days}, ${s.sprint.days_left} days left`)
   );
-  info(L(`Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`, `Day ${s.sprint.day}/${s.sprint.total_days}, ${s.sprint.days_left} days left`), s.me.target_pct ? L(`Mục tiêu của bạn: ${Math.round(s.me.target_pct)}% sách mỗi ngày`, `Your goal: ${Math.round(s.me.target_pct)}% of the book per day`) : L("Mục tiêu mỗi ngày được tính khi bạn mở sách chung", "Your daily goal is set when you open the shared book"));
+  const dayLine = L(`Ngày ${s.sprint.day}/${s.sprint.total_days}, còn ${s.sprint.days_left} ngày`, `Day ${s.sprint.day}/${s.sprint.total_days}, ${s.sprint.days_left} days left`);
+  const goal = s.me.target_pct ? L(`Mục tiêu: ${Math.round(s.me.target_pct)}% sách mỗi ngày.`, `Goal: ${Math.round(s.me.target_pct)}% of the book per day.`) : L("Mục tiêu mỗi ngày được tính khi bạn mở sách chung.", "Your daily goal is set when you open the shared book.");
   if (ext && !ext.by_me) {
+    info(dayLine, goal);
     act("ext_yes", L(`Đồng ý gia hạn +${ext.days} ngày`, `Accept +${ext.days} days`), L(`${P} đề nghị`, `Proposed by ${P}`));
     act("ext_no", L("Từ chối gia hạn", "Decline the extension"));
-  } else if (ext) info(L(`Đã đề nghị gia hạn +${ext.days} ngày`, `You proposed +${ext.days} days`), L(`Chờ ${P} đồng ý`, `Waiting for ${P}`));
-  else {
-    act("ext3", L("Đề nghị gia hạn +3 ngày", "Propose +3 days"), L("Cả hai phải đồng ý", "You both need to agree"));
-    act("ext7", L("Đề nghị gia hạn +7 ngày", "Propose +7 days"), L("Cả hai phải đồng ý", "You both need to agree"));
-    if (opts.ko) cur.items.push({ id: "ext.ask", title: "» " + L("Đề nghị số ngày khác…", "Propose another number of days…"), author: L(`Nhập từ 1 đến ${MAX_EXT} ngày`, `Type 1 to ${MAX_EXT} days`) });
-    else info(L("Muốn số ngày khác?", "Another number of days?"), L("Bấm Tìm kiếm ở đầu trang, nhập số ngày (ví dụ 5)", "Tap Search at the top, type the number of days (e.g. 5)"));
+  } else if (ext) {
+    info(L(`Đã đề nghị gia hạn +${ext.days} ngày`, `You proposed +${ext.days} days`), L(`Chờ ${P} đồng ý. `, `Waiting for ${P}. `) + dayLine + ".");
+  } else if (opts.ko) {
+    info(dayLine, goal);
+    cur.items.push({ id: "ext.ask", title: "» " + L("Đề nghị gia hạn…", "Propose an extension…"), author: L(`Nhập số ngày (1–${MAX_EXT}), ${P} cần đồng ý`, `Type the days (1–${MAX_EXT}); ${P} needs to agree`) });
+  } else {
+    // CrossPoint rows cannot open a keyboard; its Search box (magnifier in the
+    // header) is the number entry, answered by /search.
+    info(L("Gia hạn: bấm kính lúp ở thanh trên, gõ số ngày", "To extend: tap the magnifier at the top, type the days"), dayLine + ". " + goal);
   }
   return { s, sections };
 }

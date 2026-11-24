@@ -112,7 +112,7 @@ const EN = {
   "Từ chối": "Decline",
   "Cả hai phải đồng ý.": "You both need to agree.",
   "Đề nghị +{0} ngày": "Propose +{0} days",
-  "Số ngày khác (1–30)": "Other (1–30 days)",
+  "Số ngày (1–30)": "Days (1–30)",
   "Đề nghị": "Propose",
   "Số ngày gia hạn phải từ 1 đến 30": "Extensions must be 1 to 30 days",
   "Máy đọc": "Your reader",
@@ -317,8 +317,7 @@ function render() {
     const ext = sp.extension;
     out.push(\`<div class="card"><h2>\${t("Gia hạn sprint")}</h2>\${ext ? (ext.by_me ? \`<p>\${t("Bạn đã đề nghị +{0} ngày, chờ {1} đồng ý.", ext.days, P)}</p><button class="ghost" onclick="act('extend',{action:'cancel'})">\${t("Huỷ đề nghị")}</button>\`
       : \`<p>\${t("{0} đề nghị gia hạn +{1} ngày.", P, ext.days)}</p><button onclick="act('extend',{action:'accept'})">\${t("Đồng ý")}</button><button class="ghost" onclick="act('extend',{action:'decline'})">\${t("Từ chối")}</button>\`)
-      : \`<p class="muted">\${t("Cả hai phải đồng ý.")}</p><button class="ghost" onclick="act('extend',{action:'propose',days:3})">\${t("Đề nghị +{0} ngày", 3)}</button><button class="ghost" onclick="act('extend',{action:'propose',days:7})">\${t("Đề nghị +{0} ngày", 7)}</button>
-        <div class="row" style="gap:8px;margin-top:8px"><input id="extn" type="number" min="1" max="30" inputmode="numeric" placeholder="\${t("Số ngày khác (1–30)")}" style="flex:1"><button class="ghost" onclick="const n=+document.getElementById('extn').value;act('extend',{action:'propose',days:n})">\${t("Đề nghị")}</button></div>\`}</div>\`);
+      : \`<p class="muted">\${t("Cả hai phải đồng ý.")}</p><div class="row" style="gap:8px;margin-top:8px"><input id="extn" type="number" min="1" max="30" inputmode="numeric" placeholder="\${t("Số ngày (1–30)")}" style="flex:1"><button class="ghost" onclick="const n=+document.getElementById('extn').value;act('extend',{action:'propose',days:n})">\${t("Đề nghị")}</button></div>\`}</div>\`);
   }
   if (s.phase !== "active") out.push(bookCard(s));
   if (s.phase === "active" || s.phase === "recap") out.push(highlightCard(s));
