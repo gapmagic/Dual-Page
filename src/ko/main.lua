@@ -10,6 +10,7 @@ Same rooms as the XTeink/CrossPoint plugin: https://dualpage.online
 ]]
 
 local DataStorage = require("datastorage")
+local Dispatcher = require("dispatcher")
 local Device = require("device")
 local ConfirmBox = require("ui/widget/confirmbox")
 local Event = require("ui/event")
@@ -99,6 +100,13 @@ function DualPage:init()
     util.makePath(self.screen_dir)
     self.store = LuaSettings:open(self.dir .. "/state.lua")
     self.ui.menu:registerToMainMenu(self)
+    -- Lets Gesture manager (tap/long-press corners, swipes...) open Dual Page.
+    Dispatcher:registerAction("dualpage_open", {
+        category = "none",
+        event = "DualPageOpen",
+        title = L("Mở Dual Page", "Open Dual Page"),
+        general = true,
+    })
     if self.ui.highlight then
         self.ui.highlight:addToHighlightDialog("12_dualpage_share", function(this)
             return {
@@ -130,6 +138,11 @@ end
 function DualPage:getDigest()
     if not (self.ui.document and self.ui.doc_settings) then return end
     return self.ui.doc_settings:readSetting("partial_md5_checksum") or util.partialMD5(self.ui.document.file)
+end
+
+function DualPage:onDualPageOpen()
+    self:showHome()
+    return true
 end
 
 function DualPage:onReaderReady()
