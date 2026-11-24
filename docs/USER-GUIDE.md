@@ -144,25 +144,45 @@ No Wi-Fi? No problem. The reader keeps the data and sends it when it's back onli
 
 ## 5. Sharing highlights
 
-Every highlight you make in the shared book is sent to Dual Page. **Your newest highlight automatically appears on your partner's sleep screen.** Lines longer than 140 characters are shortened to fit.
+Highlights in the shared book are sent to Dual Page. **Your newest highlight automatically appears on your partner's sleep screen.** Lines longer than 140 characters are shortened to fit. Each reader keeps only their **3 latest highlights** (newly highlighted or re-shared). Older ones are dropped automatically.
 
-**XTeink:** the reader only sends highlights when you sync. After highlighting, press **Confirm** (the button that selects in menus) to open the in-book menu → **Sync Progress**. Faster: set **Settings → Controls → Long-Press Menu** to **CrossPoint Sync**, then long-press Confirm while reading to sync. **X4 Pro (touch):** set **Settings → Controls → Home Button Gestures → Double Tap** to **CrossPoint Sync**, then double-tap Home while reading. Highlight sharing must be turned on during setup. KOReader sends right away.
+### XTeink
 
-To share a different line:
-- **On the reader:** Dual Page menu → **Highlights** → a **Share: "…"** row.
-- **On the website:** **Shared highlights** card → **share this one**.
+**Turn it on once:** do step 7 of the XTeink setup (the **Turn on highlight sharing** button on the reader's web page, or enter the values shown under Dual Page → **Highlights** in **Settings → CrossPoint Sync**).
 
-  <img src="guide-en/08-highlights.png" width="360" alt="Shared highlights">
+**Highlight:**
+- **X4:** press **Confirm** (2nd button from the left on the front row) to open the in-book menu → **Create Clipping**. Use Left/Right to pick the first word, press Confirm, pick the last word, press Confirm again.
+- **X4 Pro:** press and hold on the text to start selecting.
 
-- **KOReader:** select text and tap **Share to Dual Page** in the highlight popup. It's shared right away, even if you don't save the highlight.
+**Send:** XTeink only sends highlights when you sync. After highlighting, open the in-book menu → **Sync Progress**. It shows "Syncing Clippings..." and finishes. Syncing also sends your reading progress.
+
+**Faster: put sync on a button (one-time setup):**
+- **X4 Pro:** **Settings → Controls → Home Button Gestures**, set **Double Tap = CrossPoint Sync**. Double-tap Home while reading.
+- **X4:** **Settings → Controls → Long-Press Menu**, choose **CrossPoint Sync**. Long-press Confirm while reading.
+- Keep **Settings → CrossPoint Sync → Sync Behavior = Smart Sync** (the default) so it sends without asking.
+
+### KOReader (Kindle, Kobo…)
+
+Highlight as usual; it's sent automatically when Wi-Fi is on. To share a line right away, select text and tap **Share to Dual Page** in the highlight popup. It's shared immediately, even if you don't save the highlight.
 
   <img src="guide-en/11-koreader-share.png" width="360" alt="Share to Dual Page button">
 
   *The Share to Dual Page button in KOReader's highlight popup (illustration).*
 
-Your partner's sleep screen switches to the new line the next time their reader sleeps with Wi-Fi.
+### Share a different line
+
+- **On the reader:** Dual Page menu → **Highlights** → a **Share: "…"** row.
+- **On the website:** **Shared highlights** card → **share this one**.
+
+  <img src="guide-en/08-highlights.png" width="360" alt="Shared highlights">
+
+### When your partner sees it
+
+- **Kindle/Kobo (KOReader):** while KOReader is open it checks every minute and downloads a new sleep screen if anything changed. A sleeping device can't update (Wi-Fi is off); the new line shows the next time it sleeps.
+- **XTeink:** the sleep screen updates the next time the reader sleeps with Wi-Fi.
 
 ---
+
 
 ## 6. Nudges and sprint extensions
 
