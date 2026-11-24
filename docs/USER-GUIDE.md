@@ -34,7 +34,9 @@ Do this on your phone or computer at **https://dualpage.online**. The page follo
 
 <img src="guide-en/03-join.png" width="360" alt="Join"> <img src="guide-en/04-accept.png" width="360" alt="Accept the sprint">
 
-There are only 2 people per room. The website remembers your room in that browser. To open it elsewhere, use **your private link** at the bottom of the page (the one with `#t=`). Don't share that link.
+There are only 2 people per room. No account needed: the website remembers your room with a private code saved in your browser. To open it elsewhere, use **your private link** at the bottom of the page (the one with `#t=`). Don't share that link.
+
+**Leaving a room:** tap **Leave room** at the top of the page and confirm. Your partner is told on the website, their sleep screen and their reader menu, with a summary of the streak and progress. The room closes, the old invite code stops working and the shared book file is deleted. Then create or join a new room and your reader follows. Before anyone joins, the button reads **Cancel room**.
 
 ---
 
@@ -91,7 +93,17 @@ The menu has 4 sections. Each title shows what's new, e.g. **Today · Sam nudged
 5. Open KOReader's main menu (tap the top of the screen) → **Dual Page** → turn on **Use Dual Page sleep screen**.
 6. Open **Dual Page → Open Dual Page** to see your room. It has the same 4 sections as on the XTeink.
 
-**Kindle note:** the Dual Page sleep screen only shows when KOReader handles sleep. If you still see Amazon's screensaver, check KOReader's **Screen → Sleep screen** settings. **Kindles with ads (Special Offers) always show Amazon's ad when asleep**: KOReader turns its own sleep screen off on these devices, so Dual Page can't replace it. To get the Dual Page sleep screen, remove the ads on Amazon: **Manage Content & Devices → Devices → your Kindle → Special Offers → Remove** (usually a one-time fee of about 20 USD). Progress, highlights and nudges still work with ads on.
+**The KOReader plugin updates itself.** When there's a new version, it downloads it when you open Dual Page (or every few hours on Wi-Fi) and asks to **restart KOReader**. Say yes; no copying files again.
+
+**Open Dual Page with a gesture (optional):** KOReader menu → **gear → Taps and gestures → Gesture manager** → pick a gesture, e.g. **Long-press on corner → Bottom right** → **General** → scroll to the end and tick **Dual Page**. KOReader keeps separate gestures for reading and for the file browser; set it in both if you like.
+
+**Kindle note:** the Dual Page sleep screen only shows when KOReader handles sleep. If you still see Amazon's screensaver, check KOReader's **Screen → Sleep screen** settings. Turning on the Dual Page sleep screen also hides KOReader's "Sleeping" message; if it still shows, untick the message option in **Screen → Sleep screen**.
+
+**Kindles with ads (Special Offers) always show Amazon's ad when asleep**: KOReader turns its own sleep screen off on these devices. Two ways around it:
+- **Remove the ads** on Amazon: **Manage Content & Devices → Devices → your Kindle → Special Offers → Remove** (usually a one-time fee of about 20 USD).
+- **Turn them off until the next reboot:** in KOReader open **Tools → Terminal emulator**, type `lipc-set-prop com.lab126.blanket unload ad_screensaver` (one line), press Enter, then restart KOReader. Repeat after every Kindle reboot.
+
+Progress, highlights and nudges still work with ads on.
 
 To stop using the Dual Page sleep screen, untick **Use Dual Page sleep screen**. KOReader goes back to your previous sleep screen.
 
@@ -100,11 +112,13 @@ To stop using the Dual Page sleep screen, untick **Use Dual Page sleep screen**.
 ## 4. Reading every day
 
 1. Open the **shared book** and read as usual. Only the shared book counts. Other books are fine, they just don't count.
-2. If the room creator uploaded the epub, open the Dual Page menu on your reader → **Shared book** → **Download the shared book**. It's saved to a `DualPage` folder. The first time, open it from **Home → File browser → DualPage**. A book you haven't opened yet may sit at the bottom of the Library; once you read it, it moves to Recent.
-3. With Wi-Fi on, progress is sent automatically:
-   - **XTeink:** after each reading session, when the reader sleeps.
-   - **KOReader:** while reading (about every 10 minutes), when you close the book, and when the device sleeps. To send right away: **Dual Page → Send progress and refresh sleep screen**.
-4. Put the reader to sleep to see the Dual Page screen: your shared streak, both people's progress, your partner's shared highlight, and any nudge.
+2. If the room creator uploaded the epub, open the Dual Page menu on your reader → **Shared book** → **» Download "…"**:
+   - **XTeink:** it's saved to a `DualPage` folder. The first time, open it from **Home → File browser → DualPage** (the firmware can't put new downloads at the top of the Library yet). Once you've read it, it stays in Recent and Continue reading.
+   - **KOReader:** it's saved straight into your books folder (Kindle: `documents`) and **opens right away**. Tapping download again when you already have it just opens it.
+3. Progress is sent **automatically** on Wi-Fi, nothing to tap:
+   - **XTeink:** when you leave the book and when the reader sleeps.
+   - **KOReader:** about 15 seconds after a page turn, when you close the book, and when the device sleeps.
+4. Put the reader to sleep to see the Dual Page screen: your shared streak, how much each of you read today (✓ when the goal is met), total % of the book, the daily goal, your partner's shared highlight and any nudge. Kindle and XTeink use the same layout. A sleeping reader shows your partner's new progress the next time it sleeps with Wi-Fi.
 
 | XTeink | Kindle (KOReader) |
 |---|---|
@@ -156,7 +170,7 @@ Your partner's sleep screen switches to the new line the next time their reader 
 
   <img src="guide-en/09-extend.png" width="360" alt="Extend the sprint">
 
-**End of the sprint:** the reader and the website show a **Recap** with the days you both hit your goal, how much of the book each person read, and minutes read.
+**End of the sprint:** the reader and the website show a **Recap** with the days you both hit your goal, how much of the book each person read, and minutes read. The shared book file is kept 7 more days, then deleted from the server (copies on your readers stay). Rooms whose sprint never started lose their book file after 30 days.
 
 <img src="guide-en/15-recap.png" width="240" alt="Recap">
 
@@ -164,18 +178,26 @@ Your partner's sleep screen switches to the new line the next time their reader 
 
 ## 7. How progress and the streak are counted
 
-- **Progress** is the furthest point you've reached in the shared book, e.g. 35%. Going back to reread doesn't lower it. Flipping back and forth over the same part doesn't add to it.
-- **Read today** is today's furthest point minus the furthest point before today.
+- **Progress** is your **latest position** in the shared book, e.g. 35%. If you accidentally jump to the end your partner sees that, but going back brings it back too.
+- **Today** (e.g. "today +9%") is your current position minus where the day started: yesterday's last position, or today's lowest point if lower. However much you read shows up, with ✓ once you reach the goal.
 - **Daily goal** is the part of the book left when the sprint starts, divided by the number of days. Starting at 0% with a 14-day sprint, that's about 7% a day.
 - The **shared streak** grows by 1 on each day **both** of you reach your goal. Days follow each person's own time zone.
-- Progress is based only on **your position in the book**, not on page turns. Jumping straight to the end currently counts as reading that far, so play fair with each other.
+- Progress is based only on **your position in the book**, not on page turns. Example: at 10% you slip to 96%, your partner sees "today +86%"; go back to 10% and really read to 20%, and it becomes "today +10%".
 
 ---
 
 ## 8. FAQ and troubleshooting
 
-**Do I reinstall the plugin when I change rooms?**
-No. Install once per device. When you create or join a new room **in the same browser** you downloaded the plugin from, the reader switches over automatically.
+**Do I reinstall the plugin when I change rooms or when there's a new version?**
+No. Install once per device. When you create or join a new room **in the same browser** you downloaded the plugin from, the reader switches over automatically. The KOReader plugin updates itself. The XTeink plugin rarely needs updates because the menu, text and sleep screen all come from the server.
+
+**I deleted the shared book and downloaded it again.**
+Your progress is kept on the server, but the reader opens the book from the start.
+- **KOReader:** when the book opens, the plugin asks "You got to …%. Continue from there?". Tap **Continue**.
+- **XTeink:** open the book, then the in-book menu → **KOReader Sync**. It jumps to where Dual Page last saw you (needs highlight sharing turned on during setup). Sync before leaving the book: leaving at 0% records 0%.
+
+**I can't find the downloaded book on my Kindle.**
+It's in `documents`. An older plugin may have saved it in the Kindle's top folder or in a `DualPage` folder outside `documents`: go up to the top folder in KOReader's file browser. Tapping download again in the Dual Page menu also opens the old copy.
 
 **My XTeink has no Plugins menu.**
 It's running an older CrossPoint. Update to 2.0.0 or later.

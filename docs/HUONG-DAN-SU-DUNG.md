@@ -34,7 +34,9 @@ Làm trên điện thoại hoặc máy tính, ở **https://dualpage.online**.
 <img src="guide/03-vao-phong.png" width="360" alt="Vào phòng"> <img src="guide/04-dong-y.png" width="360" alt="Đồng ý sprint">
 
 
-Phòng chỉ có 2 người. Trang web nhớ phòng của bạn trên trình duyệt đó. Muốn mở phòng trên máy khác, dùng **link riêng** ở cuối trang (link có `#t=`). Đừng gửi link này cho người khác.
+Phòng chỉ có 2 người. Không cần tài khoản: trang web nhớ phòng của bạn bằng một mã riêng lưu trong trình duyệt. Muốn mở phòng trên máy khác, dùng **link riêng** ở cuối trang (link có `#t=`). Đừng gửi link này cho người khác.
+
+**Rời phòng:** bấm nút **Rời phòng** ở đầu trang, xem lại rồi xác nhận. Bạn đọc kia được báo trên web, màn hình chờ và menu máy đọc, kèm phần tổng kết chuỗi ngày và tiến độ. Phòng đóng lại, mã mời cũ hết dùng được và file sách chung bị xoá. Sau đó bạn tạo hoặc vào phòng mới, máy đọc tự chuyển theo. Khi chưa có ai vào phòng, nút này là **Huỷ phòng**.
 
 ---
 
@@ -94,8 +96,18 @@ Menu chia thành 4 mục. Tên mục cho biết ngay có gì mới, ví dụ **H
 
 Menu Dual Page trên KOReader có cùng các dòng như ảnh menu ở mục 2.
 
+**Plugin KOReader tự cập nhật.** Khi có bản mới, plugin tự tải về lúc bạn mở Dual Page (hoặc vài tiếng một lần khi có Wi-Fi), rồi hỏi **khởi động lại KOReader**. Bấm đồng ý là xong, không phải chép file lại.
 
-**Lưu ý cho Kindle:** màn hình chờ Dual Page chỉ hiện khi KOReader điều khiển việc ngủ. Nếu Kindle vẫn hiện màn hình chờ của Amazon, vào menu của KOReader → **Màn hình → Màn hình chờ** và kiểm tra lại. **Kindle có quảng cáo (Special Offers) luôn hiện quảng cáo của Amazon khi ngủ**: KOReader tự tắt màn hình chờ của nó trên các máy này, nên Dual Page không thay được. Muốn dùng màn hình chờ Dual Page, gỡ quảng cáo trên trang Amazon: **Quản lý nội dung và thiết bị → Thiết bị → chọn Kindle → Ưu đãi đặc biệt → Gỡ bỏ** (thường mất phí khoảng 20 USD). Tiến độ, highlight và lời nhắc vẫn chạy bình thường dù còn quảng cáo.
+**Mở Dual Page bằng cử chỉ (tuỳ chọn):** menu KOReader → **bánh răng → Taps and gestures → Gesture manager** → chọn cử chỉ, ví dụ **Long-press on corner → Bottom right** → **General** → kéo xuống cuối, tick **Dual Page**. KOReader lưu cử chỉ riêng cho lúc đọc sách và lúc ở thư viện, muốn dùng ở cả hai thì đặt hai lần.
+
+
+**Lưu ý cho Kindle:** màn hình chờ Dual Page chỉ hiện khi KOReader điều khiển việc ngủ. Nếu Kindle vẫn hiện màn hình chờ của Amazon, vào menu của KOReader → **Màn hình → Màn hình chờ** và kiểm tra lại. Khi bật màn hình chờ Dual Page, plugin tự tắt dòng chữ "Sleeping" của KOReader; nếu vẫn thấy, bỏ tick ô hiện thông báo trong **Màn hình → Màn hình chờ**.
+
+**Kindle có quảng cáo (Special Offers) luôn hiện quảng cáo của Amazon khi ngủ**: KOReader tự tắt màn hình chờ của nó trên các máy này. Có hai cách:
+- **Gỡ quảng cáo hẳn** trên trang Amazon: **Quản lý nội dung và thiết bị → Thiết bị → chọn Kindle → Ưu đãi đặc biệt → Gỡ bỏ** (thường mất phí khoảng 20 USD).
+- **Tạm tắt đến lần khởi động lại máy:** trong KOReader mở **Công cụ → Terminal emulator**, gõ `lipc-set-prop com.lab126.blanket unload ad_screensaver` (một dòng) rồi Enter, sau đó khởi động lại KOReader. Sau mỗi lần khởi động lại Kindle cần gõ lại.
+
+Tiến độ, highlight và lời nhắc vẫn chạy bình thường dù còn quảng cáo.
 
 Tắt màn hình chờ Dual Page: bỏ chọn **Dùng màn hình chờ Dual Page**. KOReader trở lại kiểu màn hình chờ cũ của bạn.
 
@@ -104,11 +116,13 @@ Tắt màn hình chờ Dual Page: bỏ chọn **Dùng màn hình chờ Dual Page
 ## 4. Đọc hằng ngày
 
 1. Mở **sách chung** và đọc như bình thường. Chỉ sách chung được tính tiến độ. Bạn vẫn đọc sách khác thoải mái, chúng chỉ không được tính.
-2. Nếu người tạo phòng đã tải epub lên, mở menu Dual Page trên máy và chọn **Tải sách chung về máy**. Sách được lưu vào thư mục `DualPage`. Lần đầu, mở sách bằng **Home → Duyệt file → DualPage**. Sách mới tải chưa mở lần nào có thể nằm cuối Thư viện; đọc một lần là sách lên mục Gần đây.
-3. Khi máy có Wi-Fi, tiến độ được gửi tự động:
-   - **XTeink:** sau mỗi phiên đọc, lúc máy đi ngủ.
-   - **KOReader:** trong lúc đọc (khoảng 10 phút một lần), khi đóng sách và khi máy đi ngủ. Muốn gửi ngay thì vào **Dual Page → Gửi tiến độ và cập nhật màn hình chờ**.
-4. Cho máy ngủ là thấy màn hình chờ Dual Page: chuỗi ngày đọc chung, tiến độ của cả hai, câu bạn kia chia sẻ và lời nhắc nếu có.
+2. Nếu người tạo phòng đã tải epub lên, mở menu Dual Page trên máy, vào **Sách chung** → **» Tải về "…"**:
+   - **XTeink:** sách được lưu vào thư mục `DualPage`. Lần đầu, mở sách bằng **Home → Duyệt file → DualPage** (firmware chưa cho sách mới tải lên đầu Thư viện). Đọc một lần là sách nằm ở mục Gần đây và Đọc tiếp.
+   - **KOReader:** sách được lưu thẳng vào thư mục sách (Kindle: `documents`) và **mở luôn** sau khi tải xong. Bấm lại nút tải khi đã có sách thì sách mở ngay.
+3. Tiến độ được gửi **tự động** khi máy có Wi-Fi, không cần bấm gì:
+   - **XTeink:** khi thoát sách và khi máy đi ngủ.
+   - **KOReader:** khoảng 15 giây sau khi lật trang, khi đóng sách và khi máy đi ngủ.
+4. Cho máy ngủ là thấy màn hình chờ Dual Page: chuỗi ngày đọc chung, mỗi người hôm nay đọc thêm bao nhiêu % (✓ khi đạt mục tiêu), tổng % cuốn sách, mục tiêu mỗi ngày, câu bạn kia chia sẻ và lời nhắc nếu có. Kindle và XTeink dùng cùng một bố cục. Máy đang ngủ sẽ thấy tiến độ mới của bạn kia ở lần ngủ kế tiếp có mạng.
 
 | XTeink | Kindle (KOReader) |
 |---|---|
@@ -172,7 +186,7 @@ Màn hình chờ của bạn đọc đổi sang câu mới vào lần kế tiế
 
 
 
-**Hết sprint:** máy và web hiện màn **Tổng kết** với số ngày cùng đạt mục tiêu, phần trăm sách mỗi người đã đọc và số phút đọc.
+**Hết sprint:** máy và web hiện màn **Tổng kết** với số ngày cùng đạt mục tiêu, phần trăm sách mỗi người đã đọc và số phút đọc. File sách chung được giữ thêm 7 ngày rồi tự xoá khỏi máy chủ (sách đã tải về máy không bị ảnh hưởng). Phòng tạo 30 ngày mà chưa bắt đầu sprint cũng bị xoá file sách.
 
 <img src="guide/15-tong-ket.png" width="240" alt="Màn tổng kết">
 
@@ -181,18 +195,26 @@ Màn hình chờ của bạn đọc đổi sang câu mới vào lần kế tiế
 
 ## 7. Tiến độ và chuỗi ngày được tính thế nào
 
-- **Tiến độ** là vị trí xa nhất bạn đã đọc tới trong sách chung, ví dụ 35%. Lật lùi để đọc lại không bị trừ. Lật qua lật lại một đoạn cũng không được cộng thêm.
-- **Đọc hôm nay** là vị trí xa nhất hôm nay trừ vị trí xa nhất trước hôm nay.
+- **Tiến độ** là **vị trí mới nhất** của bạn trong sách chung, ví dụ 35%. Lỡ kéo tới cuối sách thì bạn kia sẽ thấy con số đó, nhưng khi bạn quay lại chỗ cũ thì tiến độ cũng quay về.
+- **Hôm nay** (ví dụ "hôm nay +9%") là vị trí hiện tại trừ chỗ bắt đầu ngày, tức vị trí cuối của hôm trước (hoặc chỗ thấp nhất hôm nay nếu thấp hơn). Đọc nhiều bao nhiêu thì hiện bấy nhiêu, có ✓ khi đạt mục tiêu.
 - **Mục tiêu mỗi ngày** là phần sách còn lại lúc bắt đầu sprint chia cho số ngày. Ví dụ bắt đầu ở 0% với sprint 14 ngày thì mục tiêu khoảng 7% mỗi ngày.
 - **Chuỗi đọc chung** tăng 1 vào ngày **cả hai** cùng đạt mục tiêu. Ngày được tính theo múi giờ của từng người.
-- Tiến độ chỉ tính theo **vị trí trong sách**, không đếm số lần lật trang. Hiện tại nếu nhảy thẳng tới cuối sách thì vẫn được tính là đã đọc tới đó, nên hai bạn chơi đẹp với nhau nhé.
+- Tiến độ chỉ tính theo **vị trí trong sách**, không đếm số lần lật trang. Ví dụ: đang ở 10%, lỡ kéo lên 96% thì bạn kia thấy "hôm nay +86%"; kéo về 10% rồi đọc thật tới 20% thì thành "hôm nay +10%".
 
 ---
 
 ## 8. Câu hỏi thường gặp và xử lý lỗi
 
-**Mỗi lần đổi phòng có phải cài lại plugin không?**
-Không. Mỗi máy cài một lần. Khi bạn tạo hoặc vào phòng mới **trên cùng trình duyệt** đã tải plugin, máy tự chuyển sang phòng mới.
+**Mỗi lần đổi phòng hay có bản mới có phải cài lại plugin không?**
+Không. Mỗi máy cài một lần. Khi bạn tạo hoặc vào phòng mới **trên cùng trình duyệt** đã tải plugin, máy tự chuyển sang phòng mới. Plugin KOReader tự cập nhật. Plugin XTeink gần như không cần cập nhật vì menu, chữ và màn hình chờ đều do máy chủ tạo.
+
+**Lỡ xoá sách chung rồi tải lại thì sao?**
+Tiến độ trên máy chủ vẫn còn, nhưng máy mở lại sách từ đầu.
+- **KOReader:** khi mở sách, plugin hỏi "Bạn đã đọc tới …%. Mở tiếp từ chỗ đó?", bấm **Đọc tiếp**.
+- **XTeink:** mở sách, vào menu trong sách → **KOReader Sync**. Máy nhảy về chỗ Dual Page ghi nhận lần cuối (cần đã bật chia sẻ highlight ở bước cài đặt). Nên đồng bộ trước khi thoát sách, vì thoát ở 0% thì tiến độ sẽ ghi là 0%.
+
+**Không thấy sách vừa tải trên Kindle.**
+Sách nằm trong thư mục `documents`. Bản plugin cũ có thể đã lưu ở thư mục gốc của Kindle hoặc thư mục `DualPage` ngoài `documents`: trong trình duyệt file của KOReader, lùi lên thư mục gốc để tìm. Bấm lại nút tải trong menu Dual Page cũng mở được sách cũ.
 
 **XTeink không thấy mục Plugins.**
 Máy đang chạy CrossPoint cũ. Cập nhật lên 2.0.0 trở lên.
