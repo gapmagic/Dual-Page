@@ -100,13 +100,7 @@ function DualPage:init()
     util.makePath(self.screen_dir)
     self.store = LuaSettings:open(self.dir .. "/state.lua")
     self.ui.menu:registerToMainMenu(self)
-    -- Lets Gesture manager (tap/long-press corners, swipes...) open Dual Page.
-    Dispatcher:registerAction("dualpage_open", {
-        category = "none",
-        event = "DualPageOpen",
-        title = L("Mở Dual Page", "Open Dual Page"),
-        general = true,
-    })
+    self:onDispatcherRegisterActions()
     if self.ui.highlight then
         self.ui.highlight:addToHighlightDialog("12_dualpage_share", function(this)
             return {
@@ -138,6 +132,18 @@ end
 function DualPage:getDigest()
     if not (self.ui.document and self.ui.doc_settings) then return end
     return self.ui.doc_settings:readSetting("partial_md5_checksum") or util.partialMD5(self.ui.document.file)
+end
+
+-- Lets Gesture manager (tap/long-press corners, swipes...) open Dual Page.
+-- Listed under General, near the end of the list (plugin actions come last).
+function DualPage:onDispatcherRegisterActions()
+    Dispatcher:registerAction("dualpage_open", {
+        category = "none",
+        event = "DualPageOpen",
+        title = "Dual Page",
+        general = true,
+        separator = true,
+    })
 end
 
 function DualPage:onDualPageOpen()
