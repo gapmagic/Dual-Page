@@ -522,10 +522,18 @@ end
 -- Two parts: what the partner shares with you, what you share with them.
 -- Each shows the newest quote; earlier ones open in their own list.
 
+-- JSON null arrives as a rapidjson sentinel, not nil: keep only real strings.
+local function str(v)
+    if type(v) == "string" then return v end
+    if type(v) == "number" then return tostring(v) end
+    return ""
+end
+
 local function quoteMeta(q)
-    local meta = tostring(q.when or "")
-    if q.chapter and q.chapter ~= "" then
-        meta = meta ~= "" and (meta .. " · " .. q.chapter) or q.chapter
+    local meta = str(q.when)
+    local chapter = str(q.chapter)
+    if chapter ~= "" then
+        meta = meta ~= "" and (meta .. " · " .. chapter) or chapter
     end
     return meta
 end
@@ -533,7 +541,7 @@ end
 local function quoteRow(q, extra)
     local meta = quoteMeta(q)
     if extra then meta = meta ~= "" and (meta .. " · " .. extra) or extra end
-    local text = tostring(q.text or "")
+    local text = str(q.text)
     -- Keep the row to about three lines of quote plus the date line.
     local chars = util.splitToChars(text)
     if #chars > 160 then text = table.concat(chars, "", 1, 150) .. "…" end
@@ -542,7 +550,7 @@ end
 
 -- Full quote in a popup.
 function DualPage:showQuote(title, q)
-    local text = title .. "\n\n“" .. tostring(q.text or "") .. "”"
+    local text = title .. "\n\n“" .. str(q.text) .. "”"
     local meta = quoteMeta(q)
     if meta ~= "" then text = text .. "\n\n" .. meta end
     UIManager:show(InfoMessage:new{ text = text })
@@ -562,7 +570,7 @@ end
 function DualPage:quoteItems(sec)
     local q = sec.quotes
     local p, me = q.partner or {}, q.me or {}
-    local P = tostring(p.name or "")
+    local P = str(p.name)
     local items = { max_lines = 5 }
     local function header(text)
         table.insert(items, { text = text, bold = true, dim = true, callback = function() end })
@@ -617,7 +625,12 @@ end
 
 -- Builds the menu rows of one section.
 function DualPage:sectionItems(sec)
-    if sec.id == "quotes" and type(sec.quotes) == "table" then return self:quoteItems(sec) end
+    if sec.id == "quotes" and type(sec.quotes) == "table" then
+        -- Never let a bad answer from the server close KOReader.
+        local ok, items = pcall(self.quoteItems, self, sec)
+        if ok then return items end
+        logger.warn("Dual Page: highlights menu failed", items)
+    end
     local items = {}
     for _, it in ipairs(sec.items or {}) do
         local id, title, sub = tostring(it.id or "info"), tostring(it.title or ""), tostring(it.author or "")
