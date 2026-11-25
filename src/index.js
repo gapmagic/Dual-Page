@@ -4,6 +4,7 @@ import { makeZip } from "./zip.js";
 import { pluginFiles } from "./plugin.js";
 import { koPluginFiles, KO_VERSION, KO_MAIN } from "./koplugin.js";
 import { PAGE } from "./web.js";
+import { adminPage, adminApi } from "./admin.js";
 
 const DAY = 86400;
 const HOST = "dualpage.online";
@@ -82,6 +83,8 @@ export default {
     try {
       if (req.method === "OPTIONS") return new Response(null, { headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" } });
       if (p === "/" || p === "/index.html") return new Response(PAGE, { headers: { "content-type": "text/html; charset=utf-8" } });
+      if (p === "/admin") return adminPage();
+      if (p === "/api/admin/stats") return await adminApi(req, env);
       if (p.startsWith("/api/")) return await api(req, env, url, p.slice(5));
       if (p.startsWith("/d/")) return await device(req, env, url, p.slice(3));
       if (p.startsWith("/kosync/")) return await kosync(req, env, url, p.slice(8));

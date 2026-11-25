@@ -12,6 +12,7 @@ src/plugin.js   Builds the per-reader CrossPoint plugin (device.json, config.jso
 src/ko/main.lua KOReader plugin (served to readers, updates itself)
 src/zip.js      Store-only zip writer
 src/web.js      Companion website (English and Vietnamese)
+src/admin.js    Owner-only usage stats at /admin (key hash in wrangler.toml ADMIN_KEY_HASH)
 schema.sql      Tables: rooms, members, daily, devices, highlights, shares, kosync, seen_events, quotes
 migrations.sql  Added columns (safe to run repeatedly)
 ```

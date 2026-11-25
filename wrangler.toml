@@ -18,3 +18,7 @@ fallthrough = true
 
 [triggers]
 crons = ["0 20 * * *"] # 03:00 Vietnam time: delete shared book files of finished rooms
+
+[vars]
+# SHA-256 of the owner's stats key (/admin). Only the hash is public; the key itself is kept by the owner.
+ADMIN_KEY_HASH = "c59b71127ed7cf269126d896c2392258b6060046bb804f86adc2ed13dcfa5137"
